@@ -68,6 +68,6 @@ mchi_spp_weights <- function(nspp){
 print.mchi <- function(x, ...){
   cat("MCHI Result\n")
   cat("-----------\n")
-  cat(paste0("Final score:     ", x[["final_score"]], "\n"))
+  cat(paste0("Final score:     ", round(x[["final_score"]], 2), "\n"))
   cat(paste0("Cultural health: ", round(x[["final_score_ratio"]] * 100, 0), "%\n\n"))
 }

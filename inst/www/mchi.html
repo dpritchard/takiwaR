@@ -95,9 +95,7 @@
     </div>
     </form>
     <div class="pure-u-1-3">
-    <div class="p-box">
-        <pre id="calc-result"></pre>
-    </div>
+    <div id="calc-result" class="p-box"></div>
     </div>  
     <div class="pure-g">
         <div class="pure-u-1"> 
@@ -118,6 +116,7 @@ $(document).ready(function(){
     e.preventDefault();
     //disable the button to prevent multiple clicks
     $("#submitbutton").attr("disabled", "disabled");
+    $("#calc-result").html("<p class='TAKui-secondary'>Please wait...</p>")
     
     //read the value for 'myname'
     var safe = parseInt($("#D").val());
@@ -128,13 +127,13 @@ $(document).ready(function(){
     var req = ocpu.call("mchi", {safe:safe, spp:spp, habitat:habitat}, function(session){
         session.getConsole(function(outtxt){
             //alert(outtxt);
-            $("#calc-result").text(outtxt);
+            $("#calc-result").html("<p class='TAKui-success'>Success:</p><pre>" + outtxt + "</pre>");
         });
     });
     
     //if R returns an error, alert the error message
     req.fail(function(){
-      alert("Server error: " + req.responseText);
+      $("#calc-result").html("<p class='TAKui-error'>Server error:</p><pre>" + req.responseText + "</pre>");
     });
     
     //after request complete, re-enable the button 
