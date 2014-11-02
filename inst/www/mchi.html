@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
+    <title>takir</title>
+    <link rel="stylesheet" href="./css/pure-release-0.5.0/pure-min.css">
+    <!--[if lte IE 8]>
+        <link rel="stylesheet" href="./css/pure-release-0.5.0/grids-responsive-old-ie-min.css">
+    <![endif]-->
+    <!--[if gt IE 8]><!-->
+        <link rel="stylesheet" href="./css/pure-release-0.5.0/grids-responsive-min.css">
+    <!--<![endif]-->
+    <link href="./css/style.css" rel="stylesheet">
+</head>
+<body>
+
+
+<nav>
+    <div class="main-menu pure-menu pure-menu-open pure-menu-horizontal">
+        <a class="pure-menu-heading" href="./">takir</a>
+    </div>
+</nav>
+
+<div class="content-wrapper">
+<div class="p-box">
+<h1 class="center">Calculate an MCHI Score</h1>
+<p class="elaboration italic">NB: Where available, -2 means N/A (Not Applicable), -1 means N/S (Not Sure).</p>
+<form class="pure-form pure-form-aligned">
+<div class="pure-g">
+    <div class="pure-u-1-3">
+    <div class="p-box">
+        <p>Species and site information</p>
+        <fieldset>
+            <div class="pure-control-group">
+                <label for="D">Kai Safety<br>(0-4, MCHI D)</label>
+                <input id="D" type="number" min="0" max="4" required value="4">
+            </div>
+
+            <div class="pure-control-group">
+                <label for="E">Kai Replacement<br>(0-4, MCHI E)</label>
+                <input id="E" type="number" min="0" max="4" required value="4">
+            </div>
+
+            <div class="pure-control-group">
+                <label for="F">Ability to get a feed<br>(0-4, MCHI F)</label>
+                <input id="F" type="number" min="0" max="4" required value="4">
+            </div>
+
+            <div class="pure-control-group">
+                <label for="G">Kai taste and quality<br>(0-4, MCHI G)</label>
+                <input id="G" type="number" min="0" max="4" required value="4">
+            </div>                     
+        </fieldset>
+    </div>
+    </div>
+    <div class="pure-u-1-3"> 
+    <div class="p-box">                   
+        <p>Habitat threats and quality indicators</p>
+        <fieldset>
+            <div class="pure-control-group">
+                <label for="H1">Poor water quality<br>(-2 to 4, MCHI H1)</label>
+                <input id="H1" type="number" min="-2" max="4" required value="4">
+            </div>
+
+            <div class="pure-control-group">
+                <label for="H2">Anoxic sediment<br>(-2 to 4, MCHI H2)</label>
+                <input id="H2" type="number" min="-2" max="4" required value="4">
+            </div>
+
+            <div class="pure-control-group">
+                <label for="H3a">Sediment<br>(-2 to 4, MCHI H3a)</label>
+                <input id="H3a" type="number" min="-2" max="4" required value="4">
+            </div>
+
+            <div class="pure-control-group">
+                <label for="I4a">Invasive species<br>(-2 to 4, MCHI I4a)</label>
+                <input id="I4a" type="number" min="-2" max="4" required value="4">
+            </div>
+            
+            <div class="pure-control-group">
+                <label for="I5">Seaweed / seagrass<br>(-2 to 4, MCHI I5)</label>
+                <input id="I5" type="number" min="-2" max="4" required value="4">
+            </div>   
+            
+            <div class="pure-control-group">
+                <label for="I6">Ulva bloom<br>(-2 to 4, MCHI I6)</label>
+                <input id="I6" type="number" min="-2" max="4" required value="4">
+            </div>                       
+        </fieldset>
+    </div>
+    </div>
+    </form>
+    <div class="pure-u-1-3">
+    <div class="p-box">
+        <pre id="calc-result"></pre>
+    </div>
+    </div>  
+    <div class="pure-g">
+        <div class="pure-u-1"> 
+        <button id="submitbutton" class="pure-button">Calculate MCHI Score</button>
+        </div>
+    </div>
+    </div>
+</div>          
+</div>
+
+<script src="./js/jquery-1.11.1.min.js"></script>
+<script src="./js/opencpu-0.4.js"></script>
+<script>
+//init this script when the page has loaded
+$(document).ready(function(){
+  $("#submitbutton").on("click", function(e){
+    //alert("clicked")
+    e.preventDefault();
+    //disable the button to prevent multiple clicks
+    $("#submitbutton").attr("disabled", "disabled");
+    
+    //read the value for 'myname'
+    var safe = parseInt($("#D").val());
+    var spp = [parseInt($("#E").val()), parseInt($("#F").val()), parseInt($("#G").val())];
+    var habitat = [parseInt($("#H1").val()), parseInt($("#H2").val()), parseInt($("#H3a").val()), parseInt($("#HIa").val()), parseInt($("#H5").val()), parseInt($("#H6").val())];
+    
+    //perform the request
+    var req = ocpu.call("mchi", {safe:safe, spp:spp, habitat:habitat}, function(session){
+        session.getConsole(function(outtxt){
+            //alert(outtxt);
+            $("#calc-result").text(outtxt);
+        });
+    });
+    
+    //if R returns an error, alert the error message
+    req.fail(function(){
+      alert("Server error: " + req.responseText);
+    });
+    
+    //after request complete, re-enable the button 
+    req.always(function(){
+      $("#submitbutton").removeAttr("disabled")
+    });
+  });
+});
+</script>
+
+
+
+</body>
+</html>
