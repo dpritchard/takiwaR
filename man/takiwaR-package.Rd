@@ -1,6 +1,6 @@
-\name{takir-package}
-\alias{takir-package}
-\alias{takir}
+\name{takiwaR-package}
+\alias{takiwaR-package}
+\alias{takiwaR}
 \docType{package}
 \title{
 What the package does (short line)
@@ -12,7 +12,7 @@ More about what it does (maybe more than one line)
 }
 \details{
 \tabular{ll}{
-Package: \tab takir\cr
+Package: \tab takiwaR\cr
 Type: \tab Package\cr
 Version: \tab 1.0\cr
 Date: \tab 2014-11-02\cr
