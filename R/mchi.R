@@ -1,4 +1,4 @@
-mchi <- function(safe, spp, habitat){
+mchi <- function(safe, spp, habitat, names=NULL){
   if (!is.numeric(safe) || length(safe) != 1){
     stop("safe must be a numeric vector of length 1")
   }
@@ -20,8 +20,13 @@ mchi <- function(safe, spp, habitat){
   if (all(is.na(habitat))){
     stop("You must answer at least one of the questions on forms H and I")
   }
-  if (length(spp) / 3 != length(habitat) / 6){
-    stop("spp and habitat must have the same number of rows")
+  if (!is.null(names)){
+    if(!is.character(names)){
+      stop("names must be a character vector")
+    }
+    if (!any(length(names) == ncol(spp), length(names) == length(spp))){
+      stop("names must have the same length as the number of rows in spp")
+    }
   }
   
   # -1 and -2 mean NA in this context
