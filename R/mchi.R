@@ -82,7 +82,7 @@ print.mchi <- function(x, ...){
   cat("-----------\n")
   cat(paste0("Final score:     ", round(x[["final_score"]], 2), "\n"))
   cat(paste0("Cultural health: ", round(x[["final_score_ratio"]] * 100, 0), "%\n\n"))
-  maxspplen <- max(stringr::str_length(x$spp_names))
+  maxspplen <- max(stringr::str_length(x$spp_names))+2
   colwidth <- 20
   cat("Species scores (%)\n")
   cat(rep(" ", times=maxspplen+1),
@@ -90,9 +90,8 @@ print.mchi <- function(x, ...){
       stringr::str_pad("including habitat", colwidth, side="both"),
       "\n", 
       sep="")
-  
   for(a in 1:length(x$spp_health)){
-    cat(stringr::str_pad(paste0(x$spp_names[a],": "), maxspplen, side="right"), 
+    cat(stringr::str_pad(paste0(x$spp_names[a],": "), maxspplen, side="right"),
         stringr::str_pad(paste0(round(x$spp_health[a], 2), " (", round(x$spp_health_ratio[a] *100, 0), "%)"), colwidth, side="both"), 
         stringr::str_pad(paste0(round(x$spp_with_site[a], 2), " (", round(x$spp_with_site_ratio[a] *100, 0), "%)"), colwidth, side="both"),
         "\n", 
