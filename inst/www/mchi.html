@@ -122,7 +122,7 @@ $(document).ready(function(){
     var safe = parseInt($("#D").val());
     var spp = [parseInt($("#E").val()), parseInt($("#F").val()), parseInt($("#G").val())];
     var habitat = [parseInt($("#H1").val()), parseInt($("#H2").val()), parseInt($("#H3a").val()), parseInt($("#I4a").val()), parseInt($("#I5").val()), parseInt($("#I6").val())];
-    console.log(habitat)
+    // console.log(habitat)
     //perform the request
     var req = ocpu.call("mchi", {safe:safe, spp:spp, habitat:habitat}, function(session){
         session.getConsole(function(outtxt){
