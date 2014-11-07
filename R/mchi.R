@@ -24,7 +24,7 @@ mchi <- function(safe, spp, habitat, names=NULL){
     if(!is.character(names)){
       stop("names must be a character vector")
     }
-    if (!any(length(names) == ncol(spp), length(names) == length(spp))){
+    if (!any(length(names) == nrow(spp), length(names) == length(spp))){
       stop("names must have the same length as the number of rows in spp")
     }
   }
