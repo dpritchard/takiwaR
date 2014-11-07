@@ -20,13 +20,20 @@ mchi <- function(safe, spp, habitat, names=NULL){
   if (all(is.na(habitat))){
     stop("You must answer at least one of the questions on forms H and I")
   }
+  if(!is.null(nrow(spp))){
+    nspp <- nrow(spp)
+  } else {
+    nspp <- 1
+  }
   if (!is.null(names)){
     if(!is.character(names)){
       stop("names must be a character vector")
     }
-    if (!any(length(names) == nrow(spp), length(names) == length(spp))){
+    if (length(names) != nspp){
       stop("names must have the same length as the number of rows in spp")
     }
+  } else {
+    names = paste("Unknown Species", c(1:nspp))
   }
   
   # -1 and -2 mean NA in this context
@@ -57,7 +64,7 @@ mchi <- function(safe, spp, habitat, names=NULL){
   final_score <- tail(spp_weighted, n = 1)
   final_score_ratio <- final_score / 192
   out <- list()
-  out <- list("spp_health" = spp_health, "spp_health_ratio" = spp_health_ratio, "spp_with_site" = spp_with_site, "spp_with_site_ratio" = spp_with_site_ratio, "final_score" = final_score, "final_score_ratio" = final_score_ratio)
+  out <- list("spp_names" = names, "spp_health" = spp_health, "spp_health_ratio" = spp_health_ratio, "spp_with_site" = spp_with_site, "spp_with_site_ratio" = spp_with_site_ratio, "final_score" = final_score, "final_score_ratio" = final_score_ratio)
   class(out) <- c("mchi", class(out))
   return(out)
 }
@@ -75,4 +82,22 @@ print.mchi <- function(x, ...){
   cat("-----------\n")
   cat(paste0("Final score:     ", round(x[["final_score"]], 2), "\n"))
   cat(paste0("Cultural health: ", round(x[["final_score_ratio"]] * 100, 0), "%\n\n"))
+  maxspplen <- max(stringr::str_length(x$spp_names))
+  colwidth <- 20
+  cat("Species scores (%)\n")
+  cat(rep(" ", times=maxspplen+1),
+      stringr::str_pad("excluding habitat", colwidth, side="both"), 
+      stringr::str_pad("including habitat", colwidth, side="both"),
+      "\n", 
+      sep="")
+  
+  for(a in 1:length(x$spp_health)){
+    cat(stringr::str_pad(paste0(x$spp_names[a],": "), maxspplen, side="right"), 
+        stringr::str_pad(paste0(round(x$spp_health[a], 2), " (", round(x$spp_health_ratio[a] *100, 0), "%)"), colwidth, side="both"), 
+        stringr::str_pad(paste0(round(x$spp_with_site[a], 2), " (", round(x$spp_with_site_ratio[a] *100, 0), "%)"), colwidth, side="both"),
+        "\n", 
+        sep="")
+  }
+  
+  
 }
