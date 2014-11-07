@@ -68,7 +68,7 @@ mchi <- function(safe, spp, habitat, names=NULL){
   spp_health_str <- paste0(round(spp_health, 2))
   spp_health_perc_str <- paste0(round(spp_health_ratio * 100, 0))
   spp_with_site_str <- paste0(round(spp_with_site, 2))
-  spp_with_site_perc_str <- paste0(round(spp_health_ratio *100, 0))
+  spp_with_site_perc_str <- paste0(round(spp_with_site_ratio *100, 0))
   final_score_str <- paste0(round(final_score, 2))
   final_score_perc_str <- paste0(round(final_score_ratio * 100, 0))
   
