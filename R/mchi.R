@@ -63,8 +63,24 @@ mchi <- function(safe, spp, habitat, names=NULL){
   ## Lets grab that...
   final_score <- tail(spp_weighted, n = 1)
   final_score_ratio <- final_score / 192
+  
+  ## To make life easier later, we will format some display strings
+  spp_health_str <- paste0(round(spp_health, 2))
+  spp_health_perc_str <- paste0(round(spp_health_ratio * 100, 0))
+  spp_with_site_str <- paste0(round(spp_with_site, 2))
+  spp_with_site_perc_str <- paste0(round(spp_health_ratio *100, 0))
+  final_score_str <- paste0(round(final_score, 2))
+  final_score_perc_str <- paste0(round(final_score_ratio * 100, 0))
+  
+  
   out <- list()
-  out <- list("spp_names" = names, "spp_health" = spp_health, "spp_health_ratio" = spp_health_ratio, "spp_with_site" = spp_with_site, "spp_with_site_ratio" = spp_with_site_ratio, "final_score" = final_score, "final_score_ratio" = final_score_ratio)
+  out <- list("spp_names" = names, "spp_health" = spp_health, 
+              "spp_health_ratio" = spp_health_ratio, "spp_with_site" = spp_with_site, 
+              "spp_with_site_ratio" = spp_with_site_ratio, "final_score" = final_score, 
+              "final_score_ratio" = final_score_ratio,
+              "spp_health_str" = spp_health_str, "spp_health_perc_str" = spp_health_perc_str,
+              "spp_with_site_str" = spp_with_site_str, "spp_with_site_perc_str" = spp_with_site_perc_str,
+              "final_score_str" = final_score_str, "final_score_perc_str" = final_score_perc_str)
   class(out) <- c("mchi", class(out))
   return(out)
 }
@@ -80,8 +96,8 @@ mchi_spp_weights <- function(nspp){
 print.mchi <- function(x, ...){
   cat("MCHI Result\n")
   cat("-----------\n")
-  cat(paste0("Final score:     ", round(x[["final_score"]], 2), "\n"))
-  cat(paste0("Cultural health: ", round(x[["final_score_ratio"]] * 100, 0), "%\n\n"))
+  cat(paste0("Final score:     ", x$final_score_str, "\n"))
+  cat(paste0("Cultural health: ", x$final_score_perc_str, "%\n\n"))
   maxspplen <- max(stringr::str_length(x$spp_names))+2
   colwidth <- 20
   cat("Species scores (%)\n")
@@ -92,11 +108,9 @@ print.mchi <- function(x, ...){
       sep="")
   for(a in 1:length(x$spp_health)){
     cat(stringr::str_pad(paste0(x$spp_names[a],": "), maxspplen, side="right"),
-        stringr::str_pad(paste0(round(x$spp_health[a], 2), " (", round(x$spp_health_ratio[a] *100, 0), "%)"), colwidth, side="both"), 
-        stringr::str_pad(paste0(round(x$spp_with_site[a], 2), " (", round(x$spp_with_site_ratio[a] *100, 0), "%)"), colwidth, side="both"),
+        stringr::str_pad(paste0(x$spp_health_str[a], " (", x$spp_health_perc_str[a], "%)"), colwidth, side="both"), 
+        stringr::str_pad(paste0(x$spp_with_site_str[a], " (", x$spp_with_site_perc_str[a], "%)"), colwidth, side="both"),
         "\n", 
         sep="")
   }
-  
-  
 }
