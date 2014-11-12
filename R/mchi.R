@@ -46,7 +46,7 @@ mchi <- function(safe, spp, habitat, names=NULL){
   }
   
   # OK, begin calculation
-  if (is.null(nrow(spp))){
+  if (is.null(nrow(spp)) || nrow(spp) == 1){
     spp_health <- (sum(spp[-2], na.rm=TRUE) + habitat_score) * spp[2]
   } else {
     spp_health <- (rowSums(spp[, -2], na.rm=TRUE) + habitat_score) * spp[, 2]
@@ -113,4 +113,5 @@ print.mchi <- function(x, ...){
         "\n", 
         sep="")
   }
+  
 }
