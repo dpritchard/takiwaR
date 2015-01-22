@@ -1,2 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+
+CRAN-COMMENTS\.md
+NEWS\.md

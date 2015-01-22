@@ -76,7 +76,7 @@ mchi <- function(safe, spp, habitat, names=NULL, as.char=FALSE){
   class(out) <- c("mchi", class(out))
   # If 
   if(as.char){
-      out <- mchi_string(out)
+      out <- mchi_as_char(out)
   }
   return(out)
 }
@@ -89,7 +89,7 @@ mchi_wspp <- function(nspp){
   return(weights)
 }
 
-mchi_string <- function(mchi, rnd = 2, prnd = 0){
+mchi_as_char <- function(mchi, rnd = 2, prnd = 0){
     ## To make life easier later, we will format some display strings
     spp_health <- paste0(round(mchi$spp_health, rnd))
     spp_healthR <- paste0(round(mchi$spp_healthR, rnd))
@@ -120,7 +120,7 @@ mchi_string <- function(mchi, rnd = 2, prnd = 0){
 }
 
 print.mchi <- function(x, ...){
-    s <- mchi_string(x)
+    s <- mchi_as_char(x)
     cat("MCHI Result\n")
     cat("-----------\n")
     cat(paste0("Final score:     ", s$final_score, "\n"))
