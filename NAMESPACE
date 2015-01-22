@@ -1,1 +1,3 @@
-exportPattern("^[[:alpha:]]+")
+export(mchi, mchi_wspp)
+
+S3method(print, mchi)

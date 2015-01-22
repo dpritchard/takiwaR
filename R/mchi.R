@@ -5,8 +5,8 @@ mchi <- function(safe, spp, habitat, names=NULL){
   if (!all(is.numeric(spp)) || !any(ncol(spp) == 3, length(spp) == 3)){
     stop("spp must be a numeric matrix with 3 columns, or a numeric vector of length 3")
   }
-  if (!all(is.numeric(habitat)) || !any(ncol(habitat) == 6, length(habitat) == 6)){
-    stop("habitat must be a numeric matrix with 6 columns, or a numeric vector of length 6")
+  if (!all(is.numeric(habitat)) || !(length(habitat) == 6)){
+    stop("habitat must be a numeric vector of length 6")
   }
   if (safe < 0 || safe > 4){
     stop("safe must be in the range 0 to 4")
@@ -33,7 +33,11 @@ mchi <- function(safe, spp, habitat, names=NULL){
       stop("names must have the same length as the number of rows in spp")
     }
   } else {
-    names = paste("Unknown Species", c(1:nspp))
+    if (!is.null(rownames(spp))){
+        names <- rownames(spp)
+    } else {
+        names <- paste("Unknown Species", c(1:nspp))
+    }
   }
   
   # -1 and -2 mean NA in this context
@@ -55,11 +59,11 @@ mchi <- function(safe, spp, habitat, names=NULL){
   spp_with_site <- spp_health * safe
   spp_with_site_ratio <- spp_with_site / 192
   num_spp <- ifelse(test = is.null(nrow(spp)), yes = 1, no = nrow(spp))
-  spp_weights <- mchi_spp_weights(num_spp)
+  spp_weights <- mchi_wspp(num_spp)
   #spp_weighted <- spp_with_site*spp_weights
   spp_weighted <- cumsum(spp_with_site * spp_weights) / cumsum(spp_weights)
   ## spp_weighted is a cumulative average. 
-  ## In the XLS sheet, the final score is effectivly the same as the last calculated cumulative average score (with some seriously complex if/elses!)
+  ## In the XLS sheet, the final score is effectively the same as the last calculated cumulative average score (with some seriously complex if/elses!)
   ## Lets grab that...
   final_score <- tail(spp_weighted, n = 1)
   final_score_ratio <- final_score / 192
@@ -85,7 +89,7 @@ mchi <- function(safe, spp, habitat, names=NULL){
   return(out)
 }
 
-mchi_spp_weights <- function(nspp){
+mchi_wspp <- function(nspp){
   if (!is.numeric(nspp)){
     stop("nspp must be numeric")
   }
