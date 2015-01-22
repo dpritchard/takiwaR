@@ -1,4 +1,4 @@
-mchi <- function(safe, spp, habitat, names=NULL){
+mchi <- function(safe, spp, habitat, names=NULL, as.char=FALSE){
   if (!is.numeric(safe) || length(safe) != 1){
     stop("safe must be a numeric vector of length 1")
   }
@@ -74,6 +74,10 @@ mchi <- function(safe, spp, habitat, names=NULL){
               "spp_siteR" = spp_siteR, "final_score" = final_score, 
               "final_scoreR" = final_scoreR)
   class(out) <- c("mchi", class(out))
+  # If 
+  if(as.char){
+      out <- mchi_string(out)
+  }
   return(out)
 }
 
@@ -99,6 +103,10 @@ mchi_string <- function(mchi, rnd = 2, prnd = 0){
     final_scoreR <- paste0(round(mchi$final_scoreR, rnd))
     final_scoreP <- paste0(round(mchi$final_scoreR * 100, prnd))
     
+    byspp <- data.frame("name"=mchi$spp_names, 
+                        "spp_health" = spp_health, "spp_healthR" = spp_healthR, "spp_healthP" = spp_healthP,
+                        "spp_site" = spp_site, "spp_siteR" = spp_siteR, "spp_siteP" = spp_siteP)
+    
     out <- list()
     out <- list("spp_names" = mchi$spp_names,
                 "spp_health" = spp_health, "spp_healthR" = spp_healthR,
@@ -106,8 +114,8 @@ mchi_string <- function(mchi, rnd = 2, prnd = 0){
                 "spp_site" = spp_site, "spp_siteR" = spp_siteR, 
                 "spp_siteP" = spp_siteP, 
                 "final_score" = final_score, "final_scoreR" = final_scoreR, 
-                "final_scoreP" = final_scoreP)
-    class(out) <- c("mchi_str", class(out))
+                "final_scoreP" = final_scoreP, "spp" = byspp
+                )
     return(out)
 }
 

@@ -5,7 +5,7 @@
 \title{Marine Cultural Health Index}
 \description{Calculates an MCHI Score based on the initial implementation provided by Professor Henrik Moller}
 \usage{
-mchi(safe, spp, habitat, names = NULL)
+mchi(safe, spp, habitat, names = NULL, as.char = FALSE)
 
 \method{print}{mchi}(x, ...)
 }
@@ -15,13 +15,14 @@ mchi(safe, spp, habitat, names = NULL)
   \item{spp }{A numeric matrix with 3 columns, or a numeric vector of length 3. See \emph{Details}.}
   \item{habitat }{A numeric vector of length 6. See \emph{Details}.}
   \item{names }{A character vector providing species names. See \emph{Details}.}
+  \item{as.char }{A logical. If \code{TRUE} nicely-formatted character strings are returned instead. See \emph{Value}.}
   
   \item{x }{An object of class mchi.}
-  \item{... }{Other arguments passed to print.}
+  \item{... }{Other arguments passed to \code{print}.}
 }
 
 \details{
-\code{mchi} provides a simple and reproducible interface for calculating and displaying a Marine Cultural Health Index (MCHI) score. The MCHI itself is described in detail in Schweikert et al. (2012) and users are directed there for further information regarding the calculation of the score itself. References to "forms" here relate to the original survey forms presented in Schweikert et al. (2012). 
+\code{mchi} provides a simple and reproducible interface for calculating and displaying a Marine Cultural Health Index (MCHI) score. \code{mchi_JSON} is identical, except it returns The MCHI itself is described in detail in Schweikert et al. (2012) and users are directed there for further information regarding the calculation of the score itself. References to "forms" here relate to the original survey forms presented in Schweikert et al. (2012). 
 
 \code{safe} is the food safety score (Form D). It must be an numeric value between 0 and 4, where 0 is highly contaminated and 4 is clean, uncontaminated food.  
 
@@ -39,16 +40,24 @@ mchi(safe, spp, habitat, names = NULL)
 }
 
 \value{
-\code{mchi} returns a list with the following items: 
+\code{mchi(..., as.char = FALSE)} (i.e. the default) returns a list of class \code{mchi} with the following items: 
 
 \itemize{
 \item \code{spp_names}: A character vector. The supplied species names.  
 \item \code{spp_health}: A numeric vector. Species health, not including the influence of site.  
-\item \code{spp_health_ratio}: A numeric vector. \code{spp_health} as a ratio of the maximum.  
-\item \code{spp_with_site}: A numeric vector. Species health, including the influence of site saftey.  
-\item \code{spp_with_site_ratio}: A numeric vector. \code{spp_with_site} as a ratio of the maximum.  
+\item \code{spp_healthR}: A numeric vector. \code{spp_health} as a ratio of the maximum.  
+\item \code{spp_site}: A numeric vector. Species health, including the influence of site saftey.  
+\item \code{spp_siteR}: A numeric vector. \code{spp_site} as a ratio of the maximum.  
 \item \code{final_score}: A single numeric value. The overall site score.  
-\item \code{final_score_ratio}: A single numeric value. \code{final_score} as a ratio of the maximum.  
+\item \code{final_scoreR}: A single numeric value. \code{final_score} as a ratio of the maximum. 
+}
+
+\code{mchi(..., as.char = TRUE)} returns an ordinary list, with the above as nicely-formatted strings (rounded to two decimal places) and:
+
+\itemize{
+\item \code{spp_healthP}: A string. \code{spp_healthR} as a percentage, rounded to zero decimal places.  
+\item \code{spp_siteP}: A string. \code{spp_siteR} as a percentage, rounded to zero decimal places.  
+\item \code{final_scoreP}: A string. \code{final_scoreR} as a percentage, rounded to zero decimal places.
 }
 
 }
