@@ -1,6 +1,6 @@
 ## Resubmission
 This is a resubmission.
-There is no change in functionality, therefore the version number is unchanged. 
+This is the first release and there is no change in functionality, therefore the version number is unchanged. 
  
 Following suggestions from Brain Ripley / CRAN, in this submission I have:
 
