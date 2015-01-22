@@ -1,21 +1,21 @@
 Package: takiwaR
-Title: State of the Takiwa Analysis in R
+Title: "State of the Takiwa" Analyses
 Version: 0.0.1.0
 Date: 2015-01-22
 Authors@R: person("Daniel", "Pritchard", email= "daniel@pritchard.co", role = c("aut", "cre"))
 URL: http://takiwa.org.nz
 BugReports: https://github.com/dpritchard/takiwaR/issues
-Description: This package contains functions to analyse State of the Takiwa
-	data collected as part of the Te Runanga o Ngai Tahu monitoring
-	programme, in Aotearoa (New Zealand). It has been provided to support a
-	redevelopment of the existing State of the Takiwa toolset, as part of the
-	"Takiwa 3.0" project. This project aims to provide tangata whenua (people
-	of the land) with information to guide policy development and inform a ki
-	uta ki tai (mountains to the sea) environmental management strategy.
-	The initial focus of the project is on the Marine Cultural Health Index
-	(MCHI), a citizen science survey and semi-quantitative assessment tool
-	that focuses on near-shore fish species and the habitats that support
-	them.  
+Description: takiwaR is designed to support community-led ecological surveys
+	(citizen science) as part of a "State of the Takiwa" monitoring
+	programme. It provides functions to calculate semi-quantitative
+	environmental assessment metrics, collectively known as Cultural Health
+	Indicies (CHI). These indicies emphasise traditional or cultural values
+	of the environment (ecosystem services), particularly the ability to
+	harvest food. The initial focus of the package is on the Marine Cultural
+	Health Index (MCHI), a survey tool that focuses on near-shore fish
+	species and the habitats that support them. takiwaR has been provided to
+	support a redevelopment of the existing Takiwa toolset, as part of the
+	Takiwa 3.0 project.
 Depends: R (>= 3.1.0)
 Imports: stringr
 License: GPL-3

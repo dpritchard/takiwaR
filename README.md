@@ -1,9 +1,9 @@
 # takiwaR
 
-This package contains functions to analyse State of the Takiwā data collected as part of the Te Rūnanga o Ngāi Tahu monitoring programme, in Aotearoa (New Zealand). 
+takiwaR is designed to support community-led ecological surveys (citizen science) as part of a "State of the Takiwa" monitoring programme. It provides functions to calculate semi-quantitative environmental assessment metrics, collectively known as Cultural Health Indicies (CHI). 
 
-The initial focus of the project is on the Marine Cultural Health Index (MCHI), a citizen science survey and semi-quantitative assessment tool that focuses on near-shore fish species and the habitats that support them.
-
+The initial focus of the package is on the Marine Cultural Health Index (MCHI), a survey tool that focuses on near-shore fish species and the habitats that support them. 
+	
 Currently the package is under heavy development, but you can install:
 
 -   the latest released version from CRAN with
@@ -20,3 +20,7 @@ Currently the package is under heavy development, but you can install:
     }
     devtools::install_github("dpritchard/takiwaR")
     ```
+
+This package was developed specifically to analyse State of the Takiwā data collected as part of the Te Rūnanga o Ngāi Tahu monitoring programme, in Aotearoa (New Zealand). For more information about this project, please visit the [Takiwa 3.0 Project][takiwa3] website.
+
+[takiwa3]: http://www.takiwa.org.nz
