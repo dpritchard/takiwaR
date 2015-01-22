@@ -3,7 +3,7 @@
 \alias{print.mchi}
 
 \title{Marine Cultural Health Index}
-\description{Calculates an MCHI Score based on the initial implementation provided by Professor Henrick Moller}
+\description{Calculates an MCHI Score based on the initial implementation provided by Professor Henrik Moller}
 \usage{
 mchi(safe, spp, habitat, names = NULL)
 
@@ -53,13 +53,13 @@ mchi(safe, spp, habitat, names = NULL)
 
 }
 \references{
-Schweikert K., McCarthy, A., Akins, A., Scott, N., Moller, H., Hepburn, C., and Landesberger, F. 2012. \emph{A Marine Cultural Health Index for sustainable management of mahinga kai in Aotearoa - New Zealand}. He Kohinga Rangahau No. 15. 88 pp. University of Otago, Dunedin. \url{http://hdl.handle.net/10523/5367}
+Schweikert K., McCarthy A., Akins A., Scott N., Moller H., Hepburn C., and Landesberger F. 2012. \emph{A Marine Cultural Health Index for sustainable management of mahinga kai in Aotearoa - New Zealand}. He Kohinga Rangahau No. 15. 88 pp. University of Otago, Dunedin. \url{http://hdl.handle.net/10523/5367}
 
 \url{http://www.takiwa.org.nz}
 }
 
 \author{
-Daniel Pritchard and Henrick Moller  
+Daniel Pritchard and Henrik Moller  
 }
 
 \examples{
