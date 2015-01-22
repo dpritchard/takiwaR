@@ -2,7 +2,7 @@
 
 takiwaR is designed to support community-led ecological surveys (citizen science) as part of a "State of the Takiwa" monitoring programme. It provides functions to calculate semi-quantitative environmental assessment metrics, collectively known as Cultural Health Indices (CHI). 
 
-The initial focus of the package is on the Marine Cultural Health Index (MCHI), a survey tool that focuses on near-shore fish species and the habitats that support them. 
+The initial focus of the package is on the Marine Cultural Health Index (MCHI), a survey tool that targets near-shore fish species and the habitats that support them. 
 
 Currently the package is under heavy development, but you can install:
 

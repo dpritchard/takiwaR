@@ -1,11 +1,13 @@
 ## Resubmission
-This is a resubmission. The version number is unchanged.  
-Per suggestions from Brain Ripley / CRAN, in this submission I have:
+This is a resubmission.
+There is no change in functionality, therefore the version number is unchanged. 
+ 
+Following suggestions from Brain Ripley / CRAN, in this submission I have:
 
 - Quoted "State of the Takiwa" throughout DESCRIPTION.
 - Modified the Title, including removing redundant "in R".
-- Removed redundant phrases form the Description (e.g. "This package contains").
-- Rewritten the Description to describe on what the package actually provides, not broader project aims (which I agree are of limited interest to the wider R community).  
+- Removed redundant phrases from the Description (e.g. "This package contains").
+- Rewritten the Description to describe what the package actually provides, not broader project aims (which I agree are of limited interest to the wider R community).  
 - Sorted out my testing environment so I don't get erroneous NOTEs
 
 ## Test environments
