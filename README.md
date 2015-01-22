@@ -1,4 +1,4 @@
-# takiwaR
+# takiwaR: Methods for "State of the Takiwa" Monitoring
 
 takiwaR is designed to support community-led ecological surveys (citizen science) as part of a "State of the Takiwa" monitoring programme. It provides functions to calculate semi-quantitative environmental assessment metrics, collectively known as Cultural Health Indices (CHI). 
 

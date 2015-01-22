@@ -1,5 +1,5 @@
 Package: takiwaR
-Title: "State of the Takiwa" Analyses
+Title: Methods for "State of the Takiwa" Monitoring
 Version: 0.0.1.0
 Date: 2015-01-22
 Authors@R: person("Daniel", "Pritchard", email= "daniel@pritchard.co", role = c("aut", "cre"))
