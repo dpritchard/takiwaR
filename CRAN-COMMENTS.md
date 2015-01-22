@@ -19,4 +19,4 @@ This is expected, as this is a new submission for me.  The initial release is ve
 I cannot figure this one out! I have followed all the advice I could find (RE: Repositories and ~./Rprofile), but I still can't suppress this NOTE. Worse, it seems to be intermittent: It appears when running from inside RStudio, but not when running directly from the Terminal, or when checked on WinBuilder... Hmmm. Hopefully this is OK.
 
 ## Downstream dependancies
-There are none, nor am I expecting there to very many (if any) in the foreseeable future!
+There are none, nor am I expecting there to be very many (if any) in the foreseeable future!
