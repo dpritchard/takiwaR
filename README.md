@@ -4,15 +4,7 @@ takiwaR is designed to support community-led ecological surveys (citizen science
 
 The initial focus of the package is on the Marine Cultural Health Index (MCHI), a survey tool that targets near-shore fish species and the habitats that support them. 
 
-Currently the package is under heavy development, but you can install:
-
--   the latest released version from CRAN with
-
-    ``` r
-    install.packages("takiwaR")
-    ```
-
--   or the latest development version from github with
+Currently the package is under heavy development, but you can install the latest development version from github with
 
     ``` r
     if (packageVersion("devtools") < 1.6) {
