@@ -129,8 +129,8 @@ print.mchi <- function(x, ...){
     colwidth <- 20
     cat("Species scores (%)\n")
     cat(rep(" ", times=maxspplen+1),
-        stringr::str_pad("excluding habitat", colwidth, side="both"), 
-        stringr::str_pad("including habitat", colwidth, side="both"),
+        stringr::str_pad("excl. site safety", colwidth, side="both"), 
+        stringr::str_pad("inc. site safety", colwidth, side="both"),
         "\n", sep="")
     for(a in 1:length(s$spp_health)){
         cat(stringr::str_pad(paste0(s$spp_names[a],": "), maxspplen, side="right"),

@@ -14,6 +14,8 @@
     <!--[if gt IE 8]><!-->
         <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/grids-responsive-min.css">
     <!--<![endif]-->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    
     <link href="./css/style.css" rel="stylesheet">
 </head>
 <body>
@@ -31,70 +33,85 @@
 <p class="elaboration italic">NB: Where available, -2 means N/A (Not Applicable), -1 means N/S (Not Sure).</p>
 <form class="pure-form pure-form-aligned">
 <div class="pure-g">
-    <div class="pure-u-1 pure-u-md-1-4">
+<div class="pure-u-1 pure-u-md-1-3">
     <div class="p-box">
-        <p>Species and site information</p>
+        <p>Site Safety</p>
         <fieldset>
             <div class="pure-control-group">
-                <label for="D">Kai Safety<br>(0-4, MCHI D)</label>
+                <label for="D">Safety<br>(0-4, D)</label>
                 <input id="D" type="number" min="0" max="4" required value="4">
             </div>
-
-            <div class="pure-control-group">
-                <label for="E">Kai Replacement<br>(0-4, MCHI E)</label>
-                <input id="E" type="number" min="0" max="4" required value="4">
-            </div>
-
-            <div class="pure-control-group">
-                <label for="F">Ability to get a feed<br>(0-4, MCHI F)</label>
-                <input id="F" type="number" min="0" max="4" required value="4">
-            </div>
-
-            <div class="pure-control-group">
-                <label for="G">Kai taste and quality<br>(0-4, MCHI G)</label>
-                <input id="G" type="number" min="0" max="4" required value="4">
-            </div>                     
         </fieldset>
-    </div>
-    </div>
-    <div class="pure-u-1 pure-u-md-1-4"> 
-    <div class="p-box">                   
+        
         <p>Habitat threats and quality indicators</p>
         <fieldset>
             <div class="pure-control-group">
-                <label for="H1">Poor water quality<br>(-2 to 4, MCHI H1)</label>
+                <label for="H1">Water quality<br>(-2 to 4, H1)</label>
                 <input id="H1" type="number" min="-2" max="4" required value="4">
             </div>
 
             <div class="pure-control-group">
-                <label for="H2">Anoxic sediment<br>(-2 to 4, MCHI H2)</label>
+                <label for="H2">Anoxic sediment<br>(-2 to 4, H2)</label>
                 <input id="H2" type="number" min="-2" max="4" required value="4">
             </div>
 
             <div class="pure-control-group">
-                <label for="H3a">Sediment<br>(-2 to 4, MCHI H3)</label>
+                <label for="H3a">Sediment<br>(-2 to 4, H3)</label>
                 <input id="H3a" type="number" min="-2" max="4" required value="4">
             </div>
 
             <div class="pure-control-group">
-                <label for="I4a">Invasive species<br>(-2 to 4, MCHI I1)</label>
+                <label for="I4a">Invasive species<br>(-2 to 4, I1)</label>
                 <input id="I4a" type="number" min="-2" max="4" required value="4">
             </div>
             
             <div class="pure-control-group">
-                <label for="I5">Seaweed / seagrass<br>(-2 to 4, MCHI I2)</label>
+                <label for="I5">Seaweed / seagrass<br>(-2 to 4, I2)</label>
                 <input id="I5" type="number" min="-2" max="4" required value="4">
             </div>   
             
             <div class="pure-control-group">
-                <label for="I6">Ulva bloom<br>(-2 to 4, MCHI I3)</label>
+                <label for="I6">Ulva bloom<br>(-2 to 4, I3)</label>
                 <input id="I6" type="number" min="-2" max="4" required value="4">
-            </div>                       
+            </div>
         </fieldset>
     </div>
+</div>
+    
+<div class="pure-u-1 pure-u-md-2-3"> 
+    <div class="p-box TAKctrl-add-remove-container" id="TAKctrl-KaiSpecies-contain">
+    <div id="TAKctrl-KaiSpecies-contain-TAKunit1" class="MCHI-Spp-Data">
+        <span class="TAKui-button-block">
+        <input type="text" id="SpeciesName-TAKunit1" class="SppName" placeholder="Species Name">
+        <a class="TAKui-button-secondary pure-button TAKctrl-add"><i class="fa fa-plus-circle"></i> </a>
+        <a class="TAKui-button-error pure-button TAKctrl-remove TAKctrl-initially-hidden"><i class="fa fa-minus-circle"></i> </a>
+        </span>
+        <fieldset>
+        <div class="pure-g pure-form-stacked">
+            <div class="pure-u-1 pure-u-md-1-3">
+                <label for="E-TAKunit1">Kai Replacement (0-4, E)</label>
+                <input id="E-TAKunit1" class="E" type="number" min="0" max="4" required value="4">
+            </div>
+
+            <div class="pure-u-1 pure-u-md-1-3">
+                <label for="F-TAKunit1">Ability to get a feed (0-4, F)</label>
+                <input id="F-TAKunit1" class="F" type="number" min="0" max="4" required value="4">
+            </div>
+
+            <div class="pure-u-1 pure-u-md-1-3">
+                <label for="G-TAKunit1">Kai taste and quality (0-4, G)</label>
+                <input id="G-TAKunit1" class="G" type="number" min="0" max="4" required value="4">
+            </div> 
+        </div>                   
+        </fieldset>
     </div>
-    </form>
-    <div class="pure-u-1 pure-u-md-1-2">
+    </div>    
+</div>
+</div>
+</form>
+
+<div class="pure-g">
+    <div class="pure-u-1">
     <div id="calc-result" class="p-box"></div>
     </div>  
     <div class="pure-g">
@@ -102,12 +119,12 @@
         <button id="submitbutton" class="pure-button">Calculate MCHI Score</button>
         </div>
     </div>
-    </div>
-</div>          
 </div>
 
 <script src="./js/jquery-1.11.1.min.js"></script>
 <script src="./js/opencpu-0.4.js"></script>
+<script src="./js/TAKjs_addremove.js"></script>
+
 <script>
 //init this script when the page has loaded
 $(document).ready(function(){
@@ -120,11 +137,21 @@ $(document).ready(function(){
     
     //read the value for 'myname'
     var safe = parseInt($("#D").val());
-    var spp = [parseInt($("#E").val()), parseInt($("#F").val()), parseInt($("#G").val())];
+    var spp = []
+    var names = []
+    $(".MCHI-Spp-Data").each(function() {
+        // Need to find E, F and G classes
+        spp.push([parseInt($(this).find(".E").val()), parseInt($(this).find(".F").val()), parseInt($(this).find(".G").val())]);
+        // Need to find species names classes
+        names.push($(this).find(".SppName").val())
+    });
+    console.log(spp)
+    console.log(names)
     var habitat = [parseInt($("#H1").val()), parseInt($("#H2").val()), parseInt($("#H3a").val()), parseInt($("#I4a").val()), parseInt($("#I5").val()), parseInt($("#I6").val())];
-    // console.log(habitat)
+    //console.log(habitat)
+       
     //perform the request
-    var req = ocpu.call("mchi", {safe:safe, spp:spp, habitat:habitat}, function(session){
+    var req = ocpu.call("mchi", {safe:safe, spp:spp, habitat:habitat, names:names}, function(session){
         session.getConsole(function(outtxt){
             //alert(outtxt);
             $("#calc-result").html("<p class='TAKui-success'>Success!</p><pre>" + outtxt + "</pre>");
