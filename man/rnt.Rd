@@ -1,4 +1,5 @@
 \name{rnt}
+\alias{rnt}
 
 \title{Generate a random number table}
 \description{
@@ -20,7 +21,7 @@ rnt(min = 0, max = 30, by = 1,
   \item{colpref }{Column prefix. "Q" for "Quadrat" by defualt.}
 }
 \details{
-<TODO DOCS>
+TDDO
 }
 \value{
 Returns a matrix, with helpfully labelled columns and rows.
