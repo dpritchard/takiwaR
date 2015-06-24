@@ -1,0 +1,12 @@
+context("make_key")
+expect_equal(make_key("a_nice_key"), "a_nice_key")
+expect_equal(make_key("Check_Caps"), "check_caps")
+expect_equal(make_key("Check Spaces"), "check_spaces")
+expect_equal(make_key("A Rubbi$h Key"), "a_rubbi_h_key")
+expect_equal(make_key(".Dotted"), "TAK_dotted")
+expect_equal(make_key("_UScore"), "TAK_uscore")
+expect_equal(make_key("1 Numbered"), "TAK_1_numbered")
+expect_equal(make_key("1_Num_UScore"), "TAK_1_num_uscore")
+expect_equal(make_key("_1_UScore_Num"), "TAK_1_uscore_num")
+# Test unique key gen
+expect_equal(make_key(c("Test Unique", "Test Unique")), c("test_unique", "test_unique_1"))
