@@ -17,7 +17,8 @@ Description: takiwaR is designed to support community-led ecological surveys
 	support a redevelopment of the existing Takiwa toolset, as part of the
 	Takiwa 3.0 project.
 Depends: R (>= 3.1.0)
-Imports: stringr
+Imports: stringr, readxl, reshape2
+Suggests: testthat
 License: GPL-3
 LazyData: true
 Encoding: UTF-8

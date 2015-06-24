@@ -1,8 +1,9 @@
 export(mchi, mchi_wspp)
-export(cm2in, error_bar, se, rnt, all_is_na, length2)
+export(cm2in, error_bar, mtexti, se, rnt, all_is_na, is_zero, make_key)
 export(read_bt_raw, bt_add_meta, bt_set_meta, bt_combine, bt_long)
 
 S3method(print, mchi)
+
 S3method(bt_combine, bt_raw)
 S3method(bt_combine, bt_meta)
 S3method(bt_combine, bt_perc)
