@@ -1,0 +1,308 @@
+read_takRbt <- function(file, use_logfile = FALSE, sections = default_takRsec("takRbt")){
+    if(use_logfile){
+        logfile <- paste0(tools::file_path_sans_ext(file), ".TAKlog")
+        logfile <- file(logfile, open="wt")
+        sink(file = logfile, type = "message")
+    }
+    message("Reading file '", file, "'")
+    raw <- readxl::read_excel(file, col_names=FALSE)
+    
+    # Now, finding sections
+    message("Finding sections...")
+    sections <- find_takRsec(raw, sections)
+    
+    # Get ready for the output
+    out <- list() # Prepare an "out" object
+    
+    # Get names, start and end points 
+    section_names <- names(sections)
+    section_text <- sapply(sections, "[[", "text")
+    start <- sapply(sections, "[[", "start")
+    end <- sapply(sections, "[[", "end")
+    
+    # Now loop over these
+    for(a in 1:length(section_names)){
+        message("Extracting ", section_text[a], " as '", section_names[a], "'.")
+        out[[section_names[a]]] <- raw[start[a]:end[a], ]
+    }
+    
+    # Clean the metadata now
+    message("Processing meta...")
+    out[['meta']] <- clean_takRmeta(out[['meta']])
+    # Add the "file_name" to the metadata
+    out[['meta']] <- add_takRmeta(out[['meta']], add=list("file_name" = file))
+    # Add the class
+    class(out[['meta']]) <- c("takRmeta", class(out[['meta']]))
+    # Validate metadata
+    message("Validating meta...")
+    out[['meta']] <- takRvalidate(out[['meta']])
+    # Extract n_quad, needed to process data...
+    n_quad <- out[['meta']][['n_quad']]
+    
+    # Process data.
+    data_sections <- sections[!sapply(sections, function(x){x$class=="takRmeta"})]
+    
+    for(a in 1:length(data_sections)){
+        ss <- data_sections[[a]] # ss = Single Section
+        ss_name <- names(data_sections[a]) # Names of these single sections
+        iz <- ifelse(ss[["class"]]=="takRsf", FALSE, TRUE) # Implicit zeros for everything except size-frequency
+        
+        message("Processing section '", ss_name, "'...")
+        cd <- clean_takRdata(out[[ss_name]], quad_dir = ss[["quad_dir"]], 
+                             n_quad = n_quad, implicit_zeros = iz)
+        # Add the class 
+        class(cd) <- c(ss[["class"]], class(cd))
+        # Add optional data attributes
+        if(!is.null(ss[["range"]])){
+            attr(cd, "range") <- ss[["range"]]
+        }
+        if(!is.null(ss[["units"]])){
+            attr(cd, "units") <- ss[["units"]]
+        }
+        # Validate the data    
+        message("Validating data in section '", ss_name, "'...")
+        vd <- takRvalidate(cd)
+        out[[ss_name]] <- vd
+    }
+    
+    # Close the logfile
+    if(use_logfile){
+        sink(type="message")
+        close(logfile)
+    }
+    
+    # Return this
+    class(out) <- c("takRbt", class(out))
+    return(out)
+}
+
+default_takRsec <- function(type = NULL){
+    sections <- list()
+    class(sections) <- c("takRsec", class(sections))
+    if(is.null(type)){
+        return(sections)
+    } else if(type == "takRbt"){
+        sections[["meta"]] <- list(text="takiwaR Metadata", class="takRmeta")
+        sections[["substrate"]] <- list(text="Substrate (% Cover)", class="takRperc", quad_dir="col")
+        sections[["prim_prod_p"]] <- list(text="Primary Producers (% Cover)", class="takRperc", quad_dir="col")
+        sections[["prim_prod_c"]] <- list(text="Primary Producers (Counts)", class="takRcount", quad_dir="col")
+        sections[["creat_p"]] <- list(text="Creatures (% Cover)", class="takRperc", quad_dir="col")
+        sections[["creat_c"]] <- list(text="Creatures (Counts)", class="takRcount", quad_dir="col")
+        sections[["iris_sf"]] <- list(text="Iris size frequency", class="takRsf", quad_dir="row", range=c(10,300), units="mm")
+        sections[["australis_sf"]] <- list(text="Australis size frequency", class="takRsf", quad_dir="row", range=c(10,150), units="mm")
+        sections[["chloroticus_sf"]] <- list(text="Chloroticus size frequency", class="takRsf", quad_dir="row", range=c(10,500), units="mm")
+        return(sections)
+    } else {
+        stop("There is no default for that type.")
+    }
+}
+
+find_takRsec <- function(raw, sections, eof="EOF"){
+    # Search for the sections in the first column
+    sec_text <- sapply(sections, FUN = "[[", 1)
+    sec_name <- names(sections)
+    def_search <- tolower(stringr::str_replace_all(sec_text, "\\s", ""))
+    eof_search <- tolower(stringr::str_replace_all(eof, "\\s", ""))
+    firstcol <- tolower(stringr::str_replace_all(raw[,1], "\\s", ""))
+    
+    sec_matches <- match(def_search, firstcol)
+    eof_match <- match(eof_search, firstcol)
+    
+    ## Check eof is matched
+    if(is.na(eof_match)){
+        stop(paste0("End of file marker (", eof, ") not found."))
+    }
+        
+    if(any(is.na(sec_matches))){
+        missing <- sec_text[is.na(sec_matches)]
+        message <- paste("The following section, or sections, were not found: \n", paste(missing, collapse = ", "))
+        warning(message, immediate. = TRUE, call. = FALSE)
+        # Remove sections and section start values
+        sections <- sections[!is.na(sec_matches)]
+        sec_matches <- sec_matches[!is.na(sec_matches)]
+    }
+    
+    if(any(sec_matches > eof_match)){
+        willexclude <- sec_text[sec_matches > eof_match]
+        message <- paste("The following section, or sections, are found after the EOF and will be excluded: \n", 
+                         paste(willexclude, collapse = ", "))
+        warning(message, immediate. = TRUE, call. = FALSE)
+        # Remove sections and section start values
+        sections <- sections[!sec_matches > eof_match]
+        sec_matches <- sec_matches[!sec_matches > eof_match]
+    }
+    
+    # Combine section start values into sections...
+    for(a in 1:length(sections)){
+        sections[[a]]['start'] <- sec_matches[a]
+    }
+    
+    # Sort by start values
+    sections <- sections[order(sapply(sections, '[[', 'start'))]
+    
+    # Sort out end values
+    secminlast <- length(sections)-1
+    # Use the next sections start value minus 1
+    for(a in 1:secminlast){
+        sections[[a]]['end'] <- sections[[a+1]][['start']]-1
+    }
+    # Except for the last section, which will be EOF minus 1
+    sections[[length(sections)]]['end'] <- eof_match-1
+    
+    class(sections) <- c("takRsec", class(sections))
+    return(sections) 
+}
+
+clean_takRmeta <- function(meta){
+    meta <- meta[-1,] # Drop row 1
+    emptyrows <- apply(meta, 1, all_is_na) # Detect totally empty (NA only) rows
+    meta <- meta[!emptyrows,] # Remove empty rows
+    meta_out <- list()
+    for(a in 1:nrow(meta)){
+        key <- make_key(meta[a,1])
+        vals <- meta[a,-1]
+        vals <- vals[!is.na(vals)]
+        vals <- as.character(vals)
+        vals <- stringr::str_trim(vals)
+        vals <- type.convert(vals, as.is=TRUE)
+        if(length(vals) > 0){
+            meta_out[[key]] <- vals  
+        }
+    }
+    return(meta_out)
+}
+
+clean_takRdata <- function(dat, quad_dir, n_quad, quad_pfix = FALSE, data_pfix = FALSE, implicit_zeros = TRUE){
+    # quad_dir="col" means quadrats along columns
+    # quad_dir="row" means quadrats down rows
+    
+    quad_dir <- tolower(quad_dir)
+    # First drop the first row (which is always a header row)
+    dat <- dat[-1,]
+    # Extract and drop the first column. 
+    first_col <- dat[,1] # Extract data names from the first column
+    first_col <- stringr::str_trim(first_col) # Strip whitespace
+    dat <- dat[,-1] # Drop it
+        
+    # Next check there is at least enough columns to proceed
+    if(quad_dir == "col" & ncol(dat) < n_quad){
+        stop(paste("There aren't", n_quad, "columns in the supplied data."))
+    }
+    if(quad_dir == "row" & nrow(dat) < n_quad){
+        stop(paste("There aren't", n_quad, "rows in the supplied data."))
+    }
+    
+    # Deal with the data in "quadrats in columns" direction.
+    if(quad_dir == "col"){
+        if(ncol(dat) > n_quad){
+            dropcols <- seq(from = n_quad+1, to = ncol(dat), by = 1)
+            droped <- dat[,dropcols]
+            if(!all_is_na(droped)){
+                warning(paste0("Data exist in columns that were excluded using n_quad = ", n_quad, "."), immediate. = TRUE, call. = FALSE)
+            }
+            dat <- dat[,-dropcols, drop=FALSE]
+        }
+        droprows <- apply(dat, 1, all_is_na) # Get rows that have nothing
+        dat <- dat[!droprows, , drop=FALSE] # Drop empty rows
+        first_col <- first_col[!droprows] # Update the first column info
+        # Coerce what remains into a numeric matrix
+        dat <- apply(dat, 2, as.numeric)
+        if(implicit_zeros){
+            # Replace NA's with zeros
+            dat[is.na(dat)] <- 0
+        }
+        if(is.matrix(dat)){
+            dat <- t(dat) # Transpose "wide" data, so that quadrats are in rows
+        } else {
+            dat <- as.matrix(dat)
+        }
+    }
+    
+    # Deal with the data in "quadrats in rows" direction.
+    if(quad_dir == "row"){
+        if(nrow(dat) > n_quad){
+            droprows <- seq(from = n_quad+1, to = nrow(dat), by = 1)
+            droped <- dat[droprows,]
+            if(!all_is_na(droped)){
+                warning(paste0("Data exist in rows that were excluded using n_quad = ", n_quad, "."), immediate. = TRUE, call. = FALSE)
+            }
+            dat <- dat[-droprows, , drop=FALSE]
+            first_col <- first_col[!droprows] # Update the first column info
+        }
+        dropcols <- apply(dat, 2, all_is_na) # Get columns that have nothing
+        dat <- dat[,!dropcols, drop=FALSE] # Drop empty columns
+        # Coerce what remains into a numeric matrix
+        dat <- apply(dat, 2, as.numeric)
+        if(implicit_zeros){
+            # Replace NA's with zeros
+            dat[is.na(dat)] <- 0
+        }
+    }
+    
+    ## If there are no columns at this point, we can just return NA
+    if(is.null(ncol(dat))){
+        return(NA)
+    }
+    
+    ## Name rows (quadrats)
+    if(nrow(dat) > 0){
+        if(is.character(quad_pfix)){
+            rownames(dat) <- paste0(quad_pfix, sprintf("%02d", 1:nrow(dat)))  
+        } else {
+            rownames(dat) <- NULL
+        }
+    }
+    
+    ## Name columns (data)
+    if(ncol(dat) > 0){
+        if(is.character(data_pfix)){
+            colnames(dat) <- paste0(data_pfix, sprintf("%02d", 1:ncol(dat)))
+        } else if (!all_is_na(first_col) & quad_dir == "col") {
+            colnames(dat) <- first_col
+        } else {
+            colnames(dat) <- NULL
+        }
+    }
+    
+    ## Construct the return object
+    out <- NULL
+    if(ncol(dat) > 0){
+        out <- dat # Data is an object with nquad rows
+    } else {
+        out <- NA
+    }
+    return(out)
+}
+
+## Potential methods? Not yet... Only objects are only classed after validation
+add_takRmeta <- function(meta, add=list()){
+    if(!is.list(add) | is_zero(length(names(meta)))){
+        stop("'add' must be a named list")
+    }
+    if(is_zero(length(add))){
+        stop("'add' cannot be an empty list.")
+    }
+    for(name in names(add)){
+        key <- make_key(name)
+        if(key %in% names(meta)){
+            meta[[key]] <- c(meta[[key]], add[[name]])
+        } else {
+            meta[[key]] <- add[[name]]
+        }
+    }
+    return(meta)
+}
+
+set_takRmeta <- function(meta, set=list()){
+    if(!is.list(set) | is_zero(length(names(meta)))){
+        stop("'set' must be a named list")
+    }
+    if(is_zero(length(set))){
+        stop("'se' cannot be an empty list.")
+    }
+    for(name in names(set)){
+        key <- make_key(name)
+        meta[[key]] <- set[[name]]
+    }
+    return(meta)
+}

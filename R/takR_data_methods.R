@@ -1,10 +1,100 @@
 ## Methods
-# bt_combine... Combine is for combining data from subquadrats into larger quadrats
+# takRvalidate
+takRvalidate <- function(x, ...) UseMethod("takRvalidate")
+
+takRvalidate.takRmeta <- function(x, ...){
+    # Deal with required values
+    req_vals <- c("site", "date", "depth", "n_quad", "quad_size", "gps_lat", "gps_long")
+    val_locs <- which(req_vals %in% names(x))
+    if(length(val_locs) == 0){
+        missing <- req_vals
+    } else {
+        missing <- req_vals[-val_locs]
+    }
+    if(length(missing) > 0){
+        stop("The following required values are missing from the metadata: ", paste(missing, collapse=", "), call. = FALSE)
+    }
+    #Deal with reccomended values
+    if(!'collected_by' %in% names(x)){
+        warning("The 'collected_by' field is missing from the metadata. It is recommended.", immediate. = TRUE, call. = FALSE)
+    }
+    if(!'entered_by' %in% names(x)){
+        warning("The 'entered_by' field is missing from the metadata. It is recommended.", immediate. = TRUE, call. = FALSE)
+    }
+    # Date parsing? etc.
+    #class(x) <- c("takRmeta", class(x))
+    return(x)
+}
+
+takRvalidate.takRperc <- function(x, ...){
+    if(all(is.na(x))){
+        # Empty section
+        warning('No data in this section.', immediate. = TRUE, call. = FALSE)
+        class(x) <- c("takRempty", class(x))
+        return(x)
+    }
+    if(any(is.na(x))){
+        # Has NA's
+        warning("This section has NAs. This shouldn't be possible: Implicit zeros are assumed.", immediate. = TRUE, call. = FALSE)
+    }
+    ## Tests for percent cover data
+    toohigh <- which(x > 100, arr.ind=T)
+    # Test that no (non NA) value is > 100
+    if(nrow(toohigh) > 0){
+        warning("At least one value has been entered with > 100% cover. Are you sure?", immediate. = TRUE, call. = FALSE)
+    }
+    #class(x) <- c("takRperc", class(x))
+    return(x)
+}
+
+takRvalidate.takRcount <- function(x, ...){
+    if(all(is.na(x))){
+        # Empty section
+        warning('No data in this section.', immediate. = TRUE, call. = FALSE)
+        class(x) <- c("takRempty", class(x))
+        return(x)
+    }
+    if(any(is.na(x))){
+        # Has NA's
+        warning("This section has NAs. This shouldn't be possible: Implicit zeros are assumed.", immediate. = TRUE, call. = FALSE)
+    }
+    ## Tests for count data
+    ## Currently we have none?
+    # Should test for integers?
+    #class(x) <- c("takRcount", class(x))
+    return(x)
+}
+
+takRvalidate.takRsf <- function(x, ...){
+    if(all(is.na(x))){
+        # Empty section
+        warning('No data in this section.', immediate. = TRUE, call. = FALSE)
+        class(x) <- c("takRempty", class(x))
+        return(x)
+    }
+    units <- ifelse(is.null(attr(x, "units")), "", paste0(" ", attr(x, "units")))
+    if(!is.null(attr(x, "range"))){
+        minsize <- min(attr(x, "range"))
+        maxsize <- max(attr(x, "range"))
+        toosmall <- which(x < minsize, arr.ind=TRUE)
+        if(nrow(toosmall) > 0){
+            warning("At least one creature is less than ", minsize, units, ". Are you sure?", immediate. = TRUE, call. = FALSE)
+        }
+        toobig <- which(x > maxsize, arr.ind=TRUE)
+        if(nrow(toobig) > 0){
+            warning("At least one creature is greater than ", maxsize, units, ". Are you sure?", immediate. = TRUE, call. = FALSE)
+        }
+    }
+    #class(x) <- c("takRsf", class(x))
+    return(x)
+}
+
+# takRcombine... Combine is for combining data from subquadrats into larger quadrats
 # e.g. Low vis means divers are working small sections of a larger quadrat.
 # The assumption is that there are equal numbers of (sub)quadrats in each dataset
-bt_combine <- function(x1, x2, ...) UseMethod("bt_combine")
+takRcombine <- function(x1, x2, ...) UseMethod("takRcombine")
 
-bt_combine.bt_raw <- function(x1, x2, ...){
+takRcombine.takRbt <- function(x1, x2, ...){
     all_inp <- c(list(x1), list(x2), list(...))
     keys <- unique(unlist(lapply(all_inp, names)))
     # Merge each of the objects. Relies on Method dispatching
@@ -12,13 +102,13 @@ bt_combine.bt_raw <- function(x1, x2, ...){
     for(key in keys){
         key_dat <- lapply(all_inp, 'getElement', key)
         #print(str(key_dat))
-        out[[key]] <- do.call(bt_combine, key_dat)
+        out[[key]] <- do.call(takRcombine, key_dat)
     }
-    class(out) <- c("bt_raw", class(out))
+    class(out) <- c("takRbt", class(out))
     return(out)
 }
 
-bt_combine.bt_meta <- function(x1, x2, ...){
+takRcombine.takRmeta <- function(x1, x2, ...){
     all_inp <- c(list(x1), list(x2), list(...))
     # No need to remove empty sections... Meta sections should never be empty...
     keys <- unique(unlist(lapply(all_inp, names)))
@@ -32,29 +122,29 @@ bt_combine.bt_meta <- function(x1, x2, ...){
     # Assuming all special cases return only 1 value, return just unique values
     out_meta <- lapply(out_meta, unique) # TODO make this nicer!
     out_meta <- bt_set_meta(out_meta, list("is_merged" = TRUE))
-    class(out_meta) <- c("bt_meta", class(out_meta))
+    class(out_meta) <- c("takRmeta", class(out_meta))
     return(out_meta)
 }
 
-bt_combine.bt_perc <- function(x1, x2, ...){
+takRcombine.takRperc <- function(x1, x2, ...){
     all_inp <- c(list(x1), list(x2), list(...))
     original_length <- length(all_inp) # Needed for averaging, below
     #Find out which objects are empty, if any.
-    empty <- unlist(lapply(all_inp, inherits, what='bt_empty'))
+    empty <- unlist(lapply(all_inp, inherits, what='takRempty'))
     if(all(empty)){
         all_dat <- NA
-        class(all_dat) <- c('bt_empty', 'bt_perc', class(all_dat))
+        class(all_dat) <- c('takRempty', 'takRperc', class(all_dat))
         return(all_dat)
     }
     # Remove empty sections
     all_inp <- all_inp[!empty]
 #     for(a in 1:length(all_inp)){
-#         if(inherits(all_inp[a], what = 'bt_empty')){
+#         if(inherits(all_inp[a], what = 'takRempty')){
 #             all_inp[a] <- NULL
 #         }
 #     }
     rowcount <- unlist(lapply(all_inp, nrow))
-    if(!compare(rowcount)){
+    if(!takR_compare(rowcount)){
         stop("All inputs must have the same number of rows (i.e. quadrats).")
     }
     # cbind all the data
@@ -69,24 +159,24 @@ bt_combine.bt_perc <- function(x1, x2, ...){
     )
     #all_dat[all_dat==0] <- NA # Reconvert zeros to NA
     all_dat <- all_dat/original_length # Convert to a mean based on original input length
-    class(all_dat) <- c("bt_perc", class(all_dat))
+    class(all_dat) <- c("takRperc", class(all_dat))
     return(all_dat)
 }
 
-bt_combine.bt_count <- function(x1, x2, ...){
+takRcombine.takRcount <- function(x1, x2, ...){
     all_inp <- c(list(x1), list(x2), list(...))
     original_length <- length(all_inp) # Not really needed...
     #Find out which objects are empty, if any.
-    empty <- unlist(lapply(all_inp, inherits, what='bt_empty'))
+    empty <- unlist(lapply(all_inp, inherits, what='takRempty'))
     if(all(empty)){
         all_dat <- NA
-        class(all_dat) <- c('bt_empty', 'bt_count', class(all_dat))
+        class(all_dat) <- c('takRempty', 'takRcount', class(all_dat))
         return(all_dat)
     }
     # Remove empty sections
     all_inp <- all_inp[!empty]
     rowcount <- unlist(lapply(all_inp, nrow))
-    if(!compare(rowcount)){
+    if(!takR_compare(rowcount)){
         stop("All inputs must have the same number of rows (i.e. quadrats).")
     }
     # cbind all the data
@@ -100,47 +190,47 @@ bt_combine.bt_count <- function(x1, x2, ...){
         rowSums(all_dat[, grep(x, colnames(all_dat)), drop=FALSE])}
     )
     #all_dat[all_dat==0] <- NA # Reconvert zeros to NA
-    class(all_dat) <- c("bt_count", class(all_dat))
+    class(all_dat) <- c("takRcount", class(all_dat))
     return(all_dat)
 }
 
-bt_combine.bt_sf <- function(x1, x2, ...){
+takRcombine.takRsf <- function(x1, x2, ...){
     all_inp <- c(list(x1), list(x2), list(...))
     original_length <- length(all_inp) # Not really needed
     #Find out which objects are empty, if any.
-    empty <- unlist(lapply(all_inp, inherits, what='bt_empty'))
+    empty <- unlist(lapply(all_inp, inherits, what='takRempty'))
     if(all(empty)){
         all_dat <- NA
-        class(all_dat) <- c('bt_empty', 'bt_sf', class(all_dat))
+        class(all_dat) <- c('takRempty', 'takRsf', class(all_dat))
         return(all_dat)
     }
     # Remove empty sections
     all_inp <- all_inp[!empty]
     rowcount <- unlist(lapply(all_inp, nrow))
-    if(!compare(rowcount)){
+    if(!takR_compare(rowcount)){
         stop("All inputs must have the same number of rows (i.e. quadrats).")
     }
     all_dat <- do.call(cbind, all_inp)
-    class(all_dat) <- c("bt_sf", class(all_dat))
+    class(all_dat) <- c("takRsf", class(all_dat))
     return(all_dat)
 }
 
 # Summary
-summary.bt_raw <- function(object, ...){
+summary.takRbt <- function(object, ...){
     out <- list('meta' = object[['meta']])
     keys <- names(object)
     keys <- keys[!keys=='meta']
     for(key in keys){
         out[[key]] <- summary(object[[key]])
     }
-    class(out) <- c("bt_summary", class(out))
+    class(out) <- c("takRsummary", class(out))
     return(out)
 }
 
-summary.bt_perc <- function(object, ...){
-    if(inherits(object, what = "bt_empty")){
+summary.takRperc <- function(object, ...){
+    if(inherits(object, what = "takRempty")){
         out <- NA
-        class(out) <- c("bt_empty", class(out))
+        class(out) <- c("takRempty", class(out))
         return(out)
     }
     dat_mean <- apply(object, 2, mean)
@@ -152,10 +242,10 @@ summary.bt_perc <- function(object, ...){
     return(out)
 }
 
-summary.bt_count <- function(object, ...){
-    if(inherits(object, what = "bt_empty")){
+summary.takRcount <- function(object, ...){
+    if(inherits(object, what = "takRempty")){
         out <- NA
-        class(out) <- c("bt_empty", class(out))
+        class(out) <- c("takRempty", class(out))
         return(out)
     }
     dat_mean <- apply(object, 2, mean)
@@ -167,10 +257,10 @@ summary.bt_count <- function(object, ...){
     return(out)
 }
 
-summary.bt_sf <- function(object, ...){
-    if(inherits(object, what = "bt_empty")){
+summary.takRsf <- function(object, ...){
+    if(inherits(object, what = "takRempty")){
         out <- NA
-        class(out) <- c("bt_empty", class(out))
+        class(out) <- c("takRempty", class(out))
         return(out)
     }
     object <- object[!is.na(object)]
@@ -185,11 +275,36 @@ summary.bt_sf <- function(object, ...){
 }
 
 # Print
-print.bt_empty <- function(x, ...){
+print.takRsec <- function(x, ...){
+    if(length(x)==0){
+        cat("< Empty Section List >\n")
+    } else {
+        headers <- sapply(x, "[[", "text")
+        padwidth1 <- max(stringr::str_length(headers))
+        for(a in 1:length(x)){
+            cat(stringr::str_pad(headers[a], width = padwidth1), " ", sep="")
+            cat("    name: ", names(x[a]) , "\n", sep="")
+            cat(stringr::str_pad("", width = padwidth1+1), "   class: ", x[[a]]$class, sep="")
+            if(!is.null(x[[a]]$quad_dir)){
+                dirtext <- ifelse(x[[a]]$quad_dir=="col", "in columns", "in rows")
+                cat("\n", stringr::str_pad("", width = padwidth1+1), "quadrats: ", dirtext, sep="")
+            }
+            if(!is.null(x[[a]]$range)){
+                cat("\n", stringr::str_pad("", width = padwidth1+1), "   range: ", x[[a]]$range[1], " to ", x[[a]]$range[2], sep="")
+            } 
+            if(!is.null(x[[a]]$units)){
+                cat(" ", x[[a]]$units, sep="")
+            }
+            cat("\n")
+        }
+    }
+}
+
+print.takRempty <- function(x, ...){
     cat("< No Data >\n")
 }
 
-print.bt_meta <- function(x, ...){
+print.takRmeta <- function(x, ...){
     keys <- names(x)
     pad_len <- max(stringr::str_length(keys))+3
     for(key in keys){
@@ -198,9 +313,8 @@ print.bt_meta <- function(x, ...){
     }
 }
 
-print.bt_summary <- function(x, ...){
+print.takRsummary <- function(x, ...){
     keys <- names(x)
-    #pad_len <- max(stringr::str_length(keys))+3
     for(key in keys){
         cat("\n", key, "\n", sep="")
         cat(rep("-", times=stringr::str_length(key)), "\n", sep="")
@@ -208,9 +322,8 @@ print.bt_summary <- function(x, ...){
     }
 }
 
-print.bt_raw <- function(x, ...){
+print.takRbt <- function(x, ...){
     keys <- names(x)
-    #pad_len <- max(stringr::str_length(keys))+3
     for(key in keys){
         cat("\n", key, "\n", sep="")
         cat(rep("-", times=stringr::str_length(key)), "\n", sep="")
@@ -218,23 +331,23 @@ print.bt_raw <- function(x, ...){
     }
 }
 
-print.bt_perc <- function(x, ...){
+print.takRperc <- function(x, ...){
     print.table(x, na.print = "NA", ...)
 }
 
-print.bt_count <- function(x, ...){
+print.takRcount <- function(x, ...){
     print.table(x, na.print = "NA", ...)
 }
 
-print.bt_sf <- function(x, ...){
+print.takRsf <- function(x, ...){
     print.table(x, na.print = "", ...)
 }
 
-# bt_long
+# takRlong
 # Long generates a "long form" dataframe, columns: Quadrat, Variable, Value and one each for meta data
-bt_long <- function(x, ...) UseMethod("bt_long")
+takRlong <- function(x, ...) UseMethod("takRlong")
 
-bt_long.bt_meta <- function(x, nrow=1, ...){
+takRlong.takRmeta <- function(x, nrow=1, ...){
     keys <- names(x)
     out  <- list()
     # Sort out duplicate keys
@@ -249,23 +362,23 @@ bt_long.bt_meta <- function(x, nrow=1, ...){
     return(out)
 }
 
-bt_long.bt_perc <- function(x, meta=list(), ...){
+takRlong.takRperc <- function(x, meta=list(), ...){
     out <- reshape2::melt(x)
     names(out) <- c("bt_quad", "bt_var", "bt_val")
     return(out)
 }
 
-bt_long.bt_count <- function(x, meta=list(), ...){
+takRlong.takRcount <- function(x, meta=list(), ...){
     out <- reshape2::melt(x)
     names(out) <- c("bt_quad", "bt_var", "bt_val")
     if(length(meta) > 0){
-        out <- cbind(out, bt_long(meta, ncol=nrow(out)))
+        out <- cbind(out, takRlong(meta, ncol=nrow(out)))
     }
     out <- as.data.frame(out)
     return(out)
 }
 
-bt_long.bt_sf <- function(x, meta=list(), ...){
+takRlong.takRsf <- function(x, meta=list(), ...){
     out <- reshape2::melt(x, na.rm = TRUE)
     out <- out[,-2]
     names(out) <- c("bt_quad", "bt_val")
@@ -273,7 +386,7 @@ bt_long.bt_sf <- function(x, meta=list(), ...){
 }
 
 # Plot
-plot.bt_sf <- function(x, main = NULL, xlab = "Size", ylab = "Frequency", las = 1, ...){
+plot.takRsf <- function(x, main = NULL, xlab = "Size", ylab = "Frequency", las = 1, ...){
     dat <- x[!is.na(x)]
     old_par_mar <- par()$mar
     par(mar=c(5,4,1,1))
@@ -281,7 +394,7 @@ plot.bt_sf <- function(x, main = NULL, xlab = "Size", ylab = "Frequency", las = 
     par(mar=old_par_mar)
 }
 
-plot.bt_perc <- function(x, ...){
+plot.takRperc <- function(x, ...){
     xval <- rep(1:ncol(x), each=nrow(x))
     yval <- as.vector(x)
     labs <- colnames(x)
@@ -296,7 +409,7 @@ plot.bt_perc <- function(x, ...){
     par(mar=old_par_mar)
 }
 
-plot.bt_count <- function(x, ...){
+plot.takRcount <- function(x, ...){
     xval <- rep(1:ncol(x), each=nrow(x))
     yval <- as.vector(x)
     labs <- colnames(x)

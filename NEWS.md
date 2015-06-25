@@ -1,5 +1,12 @@
 # takiwaR 0.0.2.9000 (Development)
 
+- is.zero renamed to is_zero. No aliasing is provided.
+- length2 removed. Use `length(na.omit(x))` if this is what you mean.
+
+## make_key
+
+- Makes a key (or name) in a format that I like.
+
 # takiwaR 0.0.1.0
 
 Initial release!

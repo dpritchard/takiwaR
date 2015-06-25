@@ -3,6 +3,13 @@ cm2in <- function(x){
     return(cm)
 }
 
+compare <- function(v){
+    first <- v[1]
+    rest <- as.list(v[-1])
+    res <- sapply(rest, FUN=function(z){ identical(z, first) })
+    return(all(res))
+}
+
 make_key <- function(string, subs = "TAK"){
     key <- as.character(string)
     key <- stringr::str_trim(key)
