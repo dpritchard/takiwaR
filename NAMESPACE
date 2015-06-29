@@ -1,6 +1,7 @@
 export(mchi, mchi_wspp)
 export(cm2in, error_bar, mtexti, se, rnt, all_is_na, is_zero, make_key, compare)
-export(read_takRbt, add_takRmeta, set_takRmeta, default_takRsec)
+export(read_takRbt, default_takRsec, vals_takRsec)
+export(add_takRmeta, set_takRmeta, extract_takRmeta, toattr_takRmeta)
 export(takRcombine, takRlong, takRvalidate)
 
 S3method(print, mchi)
@@ -25,7 +26,9 @@ S3method(print, takRcount)
 S3method(print, takRsf)
 S3method(print, takRsec)
 
-S3method(takRlong, takRmeta)
+S3method(print, takRwide)
+
+#S3method(takRlong, takRmeta)
 S3method(takRlong, takRperc)
 S3method(takRlong, takRcount)
 S3method(takRlong, takRsf)

@@ -1,6 +1,14 @@
 ## Methods
 # takRvalidate
-takRvalidate <- function(x, ...) UseMethod("takRvalidate")
+takRvalidate <- function(x, ...) {
+    if(inherits(x, "takRempty")){
+        # Empty section
+        warning('No data in this section.', immediate. = TRUE, call. = FALSE)
+        return(x)
+    } else {
+        UseMethod("takRvalidate")
+    }
+}
 
 takRvalidate.takRmeta <- function(x, ...){
     # Deal with required values
@@ -27,12 +35,6 @@ takRvalidate.takRmeta <- function(x, ...){
 }
 
 takRvalidate.takRperc <- function(x, ...){
-    if(all(is.na(x))){
-        # Empty section
-        warning('No data in this section.', immediate. = TRUE, call. = FALSE)
-        class(x) <- c("takRempty", class(x))
-        return(x)
-    }
     if(any(is.na(x))){
         # Has NA's
         warning("This section has NAs. This shouldn't be possible: Implicit zeros are assumed.", immediate. = TRUE, call. = FALSE)
@@ -43,17 +45,10 @@ takRvalidate.takRperc <- function(x, ...){
     if(nrow(toohigh) > 0){
         warning("At least one value has been entered with > 100% cover. Are you sure?", immediate. = TRUE, call. = FALSE)
     }
-    #class(x) <- c("takRperc", class(x))
     return(x)
 }
 
 takRvalidate.takRcount <- function(x, ...){
-    if(all(is.na(x))){
-        # Empty section
-        warning('No data in this section.', immediate. = TRUE, call. = FALSE)
-        class(x) <- c("takRempty", class(x))
-        return(x)
-    }
     if(any(is.na(x))){
         # Has NA's
         warning("This section has NAs. This shouldn't be possible: Implicit zeros are assumed.", immediate. = TRUE, call. = FALSE)
@@ -61,21 +56,14 @@ takRvalidate.takRcount <- function(x, ...){
     ## Tests for count data
     ## Currently we have none?
     # Should test for integers?
-    #class(x) <- c("takRcount", class(x))
     return(x)
 }
 
 takRvalidate.takRsf <- function(x, ...){
-    if(all(is.na(x))){
-        # Empty section
-        warning('No data in this section.', immediate. = TRUE, call. = FALSE)
-        class(x) <- c("takRempty", class(x))
-        return(x)
-    }
     units <- ifelse(is.null(attr(x, "units")), "", paste0(" ", attr(x, "units")))
-    if(!is.null(attr(x, "range"))){
-        minsize <- min(attr(x, "range"))
-        maxsize <- max(attr(x, "range"))
+    if(!is.null(attr(x, "takRsec_range"))){
+        minsize <- min(attr(x, "takRsec_range"))
+        maxsize <- max(attr(x, "takRsec_range"))
         toosmall <- which(x < minsize, arr.ind=TRUE)
         if(nrow(toosmall) > 0){
             warning("At least one creature is less than ", minsize, units, ". Are you sure?", immediate. = TRUE, call. = FALSE)
@@ -85,7 +73,6 @@ takRvalidate.takRsf <- function(x, ...){
             warning("At least one creature is greater than ", maxsize, units, ". Are you sure?", immediate. = TRUE, call. = FALSE)
         }
     }
-    #class(x) <- c("takRsf", class(x))
     return(x)
 }
 
@@ -102,7 +89,7 @@ takRcombine.takRbt <- function(x1, x2, ...){
     for(key in keys){
         key_dat <- lapply(all_inp, 'getElement', key)
         #print(str(key_dat))
-        out[[key]] <- do.call(takRcombine, key_dat)
+        out[[key]] <- do.call(takRcombine, key_dat) # TODO - Tidy this up? Use UseMethod?
     }
     class(out) <- c("takRbt", class(out))
     return(out)
@@ -115,36 +102,32 @@ takRcombine.takRmeta <- function(x1, x2, ...){
     out_meta <- setNames(do.call(mapply, c(FUN=c, lapply(all_inp, '[', keys))), keys)
     # Handle some special cases...
     if('quad_size' %in% names(out_meta)){
-        out_meta <- bt_set_meta(out_meta, list(
+        out_meta <- set_takRmeta(out_meta, list(
             "quad_size" = sum(out_meta[['quad_size']]))
         )
     }
     # Assuming all special cases return only 1 value, return just unique values
     out_meta <- lapply(out_meta, unique) # TODO make this nicer!
-    out_meta <- bt_set_meta(out_meta, list("is_merged" = TRUE))
+    out_meta <- set_takRmeta(out_meta, list("is_merged" = TRUE))
     class(out_meta) <- c("takRmeta", class(out_meta))
     return(out_meta)
 }
 
 takRcombine.takRperc <- function(x1, x2, ...){
+    all_meta <- extract_takRmeta(x1, x2, ...) # First grab all the metadata
     all_inp <- c(list(x1), list(x2), list(...))
     original_length <- length(all_inp) # Needed for averaging, below
     #Find out which objects are empty, if any.
     empty <- unlist(lapply(all_inp, inherits, what='takRempty'))
     if(all(empty)){
         all_dat <- NA
-        class(all_dat) <- c('takRempty', 'takRperc', class(all_dat))
+        class(all_dat) <- c('takRperc', 'takRempty', class(all_dat))
         return(all_dat)
     }
     # Remove empty sections
     all_inp <- all_inp[!empty]
-#     for(a in 1:length(all_inp)){
-#         if(inherits(all_inp[a], what = 'takRempty')){
-#             all_inp[a] <- NULL
-#         }
-#     }
     rowcount <- unlist(lapply(all_inp, nrow))
-    if(!takR_compare(rowcount)){
+    if(!compare(rowcount)){
         stop("All inputs must have the same number of rows (i.e. quadrats).")
     }
     # cbind all the data
@@ -159,24 +142,26 @@ takRcombine.takRperc <- function(x1, x2, ...){
     )
     #all_dat[all_dat==0] <- NA # Reconvert zeros to NA
     all_dat <- all_dat/original_length # Convert to a mean based on original input length
-    class(all_dat) <- c("takRperc", class(all_dat))
+    all_dat <- toattr_takRmeta(all_dat, all_meta) # Add back the combined metadata
+    class(all_dat) <- c("takRperc", "takRwide", class(all_dat))
     return(all_dat)
 }
 
 takRcombine.takRcount <- function(x1, x2, ...){
+    all_meta <- extract_takRmeta(x1, x2, ...) # First grab all the metadata
     all_inp <- c(list(x1), list(x2), list(...))
     original_length <- length(all_inp) # Not really needed...
     #Find out which objects are empty, if any.
     empty <- unlist(lapply(all_inp, inherits, what='takRempty'))
     if(all(empty)){
         all_dat <- NA
-        class(all_dat) <- c('takRempty', 'takRcount', class(all_dat))
+        class(all_dat) <- c('takRcount', 'takRempty', class(all_dat))
         return(all_dat)
     }
     # Remove empty sections
     all_inp <- all_inp[!empty]
     rowcount <- unlist(lapply(all_inp, nrow))
-    if(!takR_compare(rowcount)){
+    if(!compare(rowcount)){
         stop("All inputs must have the same number of rows (i.e. quadrats).")
     }
     # cbind all the data
@@ -190,28 +175,31 @@ takRcombine.takRcount <- function(x1, x2, ...){
         rowSums(all_dat[, grep(x, colnames(all_dat)), drop=FALSE])}
     )
     #all_dat[all_dat==0] <- NA # Reconvert zeros to NA
-    class(all_dat) <- c("takRcount", class(all_dat))
+    all_dat <- toattr_takRmeta(all_dat, all_meta) # Add back the combined metadata
+    class(all_dat) <- c("takRcount", "takRwide", class(all_dat))
     return(all_dat)
 }
 
 takRcombine.takRsf <- function(x1, x2, ...){
+    all_meta <- extract_takRmeta(x1, x2, ...) # First grab all the metadata
     all_inp <- c(list(x1), list(x2), list(...))
     original_length <- length(all_inp) # Not really needed
     #Find out which objects are empty, if any.
     empty <- unlist(lapply(all_inp, inherits, what='takRempty'))
     if(all(empty)){
         all_dat <- NA
-        class(all_dat) <- c('takRempty', 'takRsf', class(all_dat))
+        class(all_dat) <- c('takRsf', 'takRempty', class(all_dat))
         return(all_dat)
     }
     # Remove empty sections
     all_inp <- all_inp[!empty]
     rowcount <- unlist(lapply(all_inp, nrow))
-    if(!takR_compare(rowcount)){
+    if(!compare(rowcount)){
         stop("All inputs must have the same number of rows (i.e. quadrats).")
     }
     all_dat <- do.call(cbind, all_inp)
-    class(all_dat) <- c("takRsf", class(all_dat))
+    all_dat <- toattr_takRmeta(all_dat, all_meta) # Add back the combined metadata
+    class(all_dat) <- c("takRsf", "takRwide", class(all_dat))
     return(all_dat)
 }
 
@@ -332,56 +320,78 @@ print.takRbt <- function(x, ...){
 }
 
 print.takRperc <- function(x, ...){
-    print.table(x, na.print = "NA", ...)
+    NextMethod("print", na.print = "NA", ...)
 }
 
 print.takRcount <- function(x, ...){
-    print.table(x, na.print = "NA", ...)
+    NextMethod("print", na.print = "NA", ...)
 }
 
 print.takRsf <- function(x, ...){
-    print.table(x, na.print = "", ...)
+    NextMethod("print", na.print = "", ...)
+}
+
+print.takRwide <- function(x, ...){
+    print.table(x, ...)
 }
 
 # takRlong
-# Long generates a "long form" dataframe, columns: Quadrat, Variable, Value and one each for meta data
+# Long generates a "long form" dataframe, columns: Quadrat, Variable, Value
 takRlong <- function(x, ...) UseMethod("takRlong")
 
-takRlong.takRmeta <- function(x, nrow=1, ...){
-    keys <- names(x)
-    out  <- list()
-    # Sort out duplicate keys
-    for(key in keys){
-        vals <- x[[key]]
-        if(length(vals) > 1){ key <- paste0(key, "_", 1:length(vals))} # TODO unify "make keys" in takiwaR
-        for(a in 1:length(vals)){
-            out[[key[a]]] <- rep(vals[a], times=nrow)
+# Not sure there is much need to do this....
+# takRlong.takRmeta <- function(x, nrow=1, ...){
+#     keys <- names(x)
+#     out  <- list()
+#     # Sort out duplicate keys
+#     for(key in keys){
+#         vals <- x[[key]]
+#         if(length(vals) > 1){ key <- make_key(key) }
+#         for(a in 1:length(vals)){
+#             out[[key[a]]] <- rep(vals[a], times=nrow)
+#         }
+#     }
+#     out <- as.data.frame(out)
+#     return(out)
+# }
+
+takRlong.takRperc <- function(x, ...){
+    out <- reshape2::melt(x, as.is = T)
+    #out <- as.matrix(out)
+    #dimnames(out) <- list(NULL, c("takR_quad", "takR_var", "takR_val"))
+    names(out) <- c("takR_quad", "takR_var", "takR_val")
+    out <- takR_map_attrs(x, out)
+    return(out)
+}
+
+takRlong.takRcount <- function(x, ...){
+    out <- reshape2::melt(x, as.is = T)
+    #out <- as.matrix(out)
+    #dimnames(out) <- list(NULL, c("takR_quad", "takR_var", "takR_val"))
+    names(out) <- c("takR_quad", "takR_var", "takR_val")
+    out <- takR_map_attrs(x, out)
+    return(out)
+}
+
+takRlong.takRsf <- function(x, ...){
+    out <- reshape2::melt(x, na.rm = TRUE, as.is = T)
+    out <- out[,-2]
+    #out <- as.matrix(out)
+    #dimnames(out) <- list(NULL, c("takR_quad", "takR_val"))
+    names(out) <- c("takR_quad", "takR_val")
+    out <- takR_map_attrs(x, out)
+    return(out)
+}
+
+takR_map_attrs <- function(x, out) {
+    # Add back attributes beginning with "takRmeta_" or "takRsec_"
+    indx <- stringr::str_detect(names(attributes(x)), "^(takRmeta_|takRsec_)")
+    if(any(indx)){
+        attr_names <- names(attributes(x))[indx]
+        for(a in 1:length(attr_names)){
+            attr(out, attr_names[a]) <- attr(x, attr_names[a])
         }
     }
-    out <- as.data.frame(out)
-    return(out)
-}
-
-takRlong.takRperc <- function(x, meta=list(), ...){
-    out <- reshape2::melt(x)
-    names(out) <- c("bt_quad", "bt_var", "bt_val")
-    return(out)
-}
-
-takRlong.takRcount <- function(x, meta=list(), ...){
-    out <- reshape2::melt(x)
-    names(out) <- c("bt_quad", "bt_var", "bt_val")
-    if(length(meta) > 0){
-        out <- cbind(out, takRlong(meta, ncol=nrow(out)))
-    }
-    out <- as.data.frame(out)
-    return(out)
-}
-
-takRlong.takRsf <- function(x, meta=list(), ...){
-    out <- reshape2::melt(x, na.rm = TRUE)
-    out <- out[,-2]
-    names(out) <- c("bt_quad", "bt_val")
     return(out)
 }
 

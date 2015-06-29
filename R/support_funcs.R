@@ -10,7 +10,7 @@ compare <- function(v){
     return(all(res))
 }
 
-make_key <- function(string, subs = "TAK"){
+make_key <- function(string, subs = "takR_"){
     key <- as.character(string)
     key <- stringr::str_trim(key)
     key <- stringr::str_replace_all(key, "\\W", "_") # Find anything that is not a word and replace

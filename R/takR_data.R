@@ -26,7 +26,7 @@ read_takRbt <- function(file, use_logfile = FALSE, sections = default_takRsec("t
         out[[section_names[a]]] <- raw[start[a]:end[a], ]
     }
     
-    # Clean the metadata now
+    ## Metadata...
     message("Processing meta...")
     out[['meta']] <- clean_takRmeta(out[['meta']])
     # Add the "file_name" to the metadata
@@ -39,7 +39,7 @@ read_takRbt <- function(file, use_logfile = FALSE, sections = default_takRsec("t
     # Extract n_quad, needed to process data...
     n_quad <- out[['meta']][['n_quad']]
     
-    # Process data.
+    # Process Data...
     data_sections <- sections[!sapply(sections, function(x){x$class=="takRmeta"})]
     
     for(a in 1:length(data_sections)){
@@ -52,13 +52,14 @@ read_takRbt <- function(file, use_logfile = FALSE, sections = default_takRsec("t
                              n_quad = n_quad, implicit_zeros = iz)
         # Add the class 
         class(cd) <- c(ss[["class"]], class(cd))
-        # Add optional data attributes
-        if(!is.null(ss[["range"]])){
-            attr(cd, "range") <- ss[["range"]]
+        # Add optional section data attributes
+        opt_names <- names(vals_takRsec(show=FALSE)$opt)
+        for(a in 1:length(opt_names)){
+            attr(cd, opt_names[a]) <- ss[[opt_names[a]]]
         }
-        if(!is.null(ss[["units"]])){
-            attr(cd, "units") <- ss[["units"]]
-        }
+        # Add meta data as data attributes (for portability)
+        cd <- toattr_takRmeta(cd, meta=out[["meta"]])
+        
         # Validate the data    
         message("Validating data in section '", ss_name, "'...")
         vd <- takRvalidate(cd)
@@ -76,6 +77,28 @@ read_takRbt <- function(file, use_logfile = FALSE, sections = default_takRsec("t
     return(out)
 }
 
+vals_takRsec <- function(show=TRUE){
+    req <- list(text="The text to search for",
+                class="The takiwaR class of the section",
+                quad_dir="Quadrat direction. Either 'col' or 'row'. Not required for 'meta'")
+    opt <- list(takRsec_range="The maximum and minimum that the values in this section can take", 
+                takRsec_units="The units of values in this section")
+    if(show){
+        #cat("Supported attributes in takiwaR sections\n")
+        #cat("----------------------------------------\n")
+        max_pad <- max(stringr::str_length(c(names(req), names(opt))))
+        cat("Required:\n")
+        for(a in 1:length(req)){
+            cat(stringr::str_pad(names(req[a]), max_pad), ": ", req[[a]], ".\n", sep="")
+        }
+        cat("\nOptional:\n")
+        for(a in 1:length(opt)){
+            cat(stringr::str_pad(names(opt[a]), max_pad), ": ", opt[[a]], ".\n", sep="")
+        }
+    }
+    invisible(list(req=req, opt=opt))
+}
+
 default_takRsec <- function(type = NULL){
     sections <- list()
     class(sections) <- c("takRsec", class(sections))
@@ -88,9 +111,12 @@ default_takRsec <- function(type = NULL){
         sections[["prim_prod_c"]] <- list(text="Primary Producers (Counts)", class="takRcount", quad_dir="col")
         sections[["creat_p"]] <- list(text="Creatures (% Cover)", class="takRperc", quad_dir="col")
         sections[["creat_c"]] <- list(text="Creatures (Counts)", class="takRcount", quad_dir="col")
-        sections[["iris_sf"]] <- list(text="Iris size frequency", class="takRsf", quad_dir="row", range=c(10,300), units="mm")
-        sections[["australis_sf"]] <- list(text="Australis size frequency", class="takRsf", quad_dir="row", range=c(10,150), units="mm")
-        sections[["chloroticus_sf"]] <- list(text="Chloroticus size frequency", class="takRsf", quad_dir="row", range=c(10,500), units="mm")
+        sections[["iris_sf"]] <- list(text="Iris size frequency", class="takRsf", quad_dir="row", 
+                                      takRsec_range=c(10,300), takRsec_units="mm")
+        sections[["australis_sf"]] <- list(text="Australis size frequency", class="takRsf", quad_dir="row", 
+                                           takRsec_range=c(10,150), takRsec_units="mm")
+        sections[["chloroticus_sf"]] <- list(text="Chloroticus size frequency", class="takRsf", quad_dir="row", 
+                                             takRsec_range=c(10,500), takRsec_units="mm")
         return(sections)
     } else {
         stop("There is no default for that type.")
@@ -112,7 +138,7 @@ find_takRsec <- function(raw, sections, eof="EOF"){
     if(is.na(eof_match)){
         stop(paste0("End of file marker (", eof, ") not found."))
     }
-        
+    
     if(any(is.na(sec_matches))){
         missing <- sec_text[is.na(sec_matches)]
         message <- paste("The following section, or sections, were not found: \n", paste(missing, collapse = ", "))
@@ -176,6 +202,8 @@ clean_takRdata <- function(dat, quad_dir, n_quad, quad_pfix = FALSE, data_pfix =
     # quad_dir="col" means quadrats along columns
     # quad_dir="row" means quadrats down rows
     
+    # Returns an object of class 'takRwide' (or 'takRempty')
+    
     quad_dir <- tolower(quad_dir)
     # First drop the first row (which is always a header row)
     dat <- dat[-1,]
@@ -183,7 +211,7 @@ clean_takRdata <- function(dat, quad_dir, n_quad, quad_pfix = FALSE, data_pfix =
     first_col <- dat[,1] # Extract data names from the first column
     first_col <- stringr::str_trim(first_col) # Strip whitespace
     dat <- dat[,-1] # Drop it
-        
+    
     # Next check there is at least enough columns to proceed
     if(quad_dir == "col" & ncol(dat) < n_quad){
         stop(paste("There aren't", n_quad, "columns in the supplied data."))
@@ -204,6 +232,13 @@ clean_takRdata <- function(dat, quad_dir, n_quad, quad_pfix = FALSE, data_pfix =
         }
         droprows <- apply(dat, 1, all_is_na) # Get rows that have nothing
         dat <- dat[!droprows, , drop=FALSE] # Drop empty rows
+        ## If there are no rows at this point, we can just return NA
+        if(is_zero(nrow(dat))){
+            out <- NA
+            class(out) <- c("takRempty", class(out))
+            return(out)
+        }
+        
         first_col <- first_col[!droprows] # Update the first column info
         # Coerce what remains into a numeric matrix
         dat <- apply(dat, 2, as.numeric)
@@ -231,17 +266,19 @@ clean_takRdata <- function(dat, quad_dir, n_quad, quad_pfix = FALSE, data_pfix =
         }
         dropcols <- apply(dat, 2, all_is_na) # Get columns that have nothing
         dat <- dat[,!dropcols, drop=FALSE] # Drop empty columns
+        ## If there are no columns at this point, we can just return NA
+        if(is_zero(ncol(dat))){
+            out <- NA
+            class(out) <- c("takRempty", class(out))
+            return(out)
+        }
+        
         # Coerce what remains into a numeric matrix
         dat <- apply(dat, 2, as.numeric)
         if(implicit_zeros){
             # Replace NA's with zeros
             dat[is.na(dat)] <- 0
         }
-    }
-    
-    ## If there are no columns at this point, we can just return NA
-    if(is.null(ncol(dat))){
-        return(NA)
     }
     
     ## Name rows (quadrats)
@@ -268,8 +305,12 @@ clean_takRdata <- function(dat, quad_dir, n_quad, quad_pfix = FALSE, data_pfix =
     out <- NULL
     if(ncol(dat) > 0){
         out <- dat # Data is an object with nquad rows
+        class(out) <- c("takRwide", class(out))
     } else {
+        # This might be unneccesary... See above...
         out <- NA
+        class(out) <- c("takRempty", class(out))
+        return(out)
     }
     return(out)
 }
@@ -306,3 +347,44 @@ set_takRmeta <- function(meta, set=list()){
     }
     return(meta)
 }
+
+extract_takRmeta <- function(x1, ...){
+    # Extract meta data from attributes in a table...
+    # Returns a list of class 'takRmeta'
+    all_inp <- c(list(x1), list(...))
+    for(a in 1:length(all_inp)){
+        dat <- all_inp[[a]]
+        temp_out <- list()
+        indx <- stringr::str_detect(names(attributes(dat)), "^(takRmeta_|takRsec_)")
+        if(any(indx)){
+            attr_names <- names(attributes(dat))[indx]
+            #print(attr_names)
+            for(b in 1:length(attr_names)){
+                meta_name <- stringr::str_replace(attr_names[b], "^(takRmeta_|takRsec_)", "")
+                temp_out[[meta_name]] <- attr(dat, attr_names[b])
+            }
+        }
+        if(a == 1){
+            ext_out <- temp_out
+            class(ext_out) <- c("takRmeta", class(ext_out))
+        } else {
+            ext_out <- takRcombine(ext_out, temp_out)
+        }
+    }
+    return(ext_out)
+}
+
+toattr_takRmeta <- function(obj, meta=list()){
+    if(!inherits(meta, "takRmeta")){
+        stop("'meta' must be of class 'takRmeta'")
+    }
+    meta_names <- names(meta)
+    for(a in 1:length(meta_names)){
+        atr_name <- paste0("takRmeta_", meta_names[a])
+        attr(obj, atr_name) <- meta[[meta_names[a]]]
+    }
+    return(obj)
+}
+
+
+
