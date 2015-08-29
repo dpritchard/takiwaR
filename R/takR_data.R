@@ -6,6 +6,7 @@ read_takRbt <- function(file, use_logfile = FALSE, sections = default_takRsec("t
     }
     message("Reading file '", file, "'")
     raw <- readxl::read_excel(file, col_names=FALSE)
+    raw <- data.frame(raw) # Fucking dplyr bullshit
     
     # Now, finding sections
     message("Finding sections...")
@@ -35,7 +36,7 @@ read_takRbt <- function(file, use_logfile = FALSE, sections = default_takRsec("t
     class(out[['meta']]) <- c("takRmeta", class(out[['meta']]))
     # Validate metadata
     message("Validating meta...")
-    out[['meta']] <- takRvalidate(out[['meta']])
+    out[['meta']] <- takRvalidate(out[['meta']], req_vals = sections$meta$required)
     # Extract n_quad, needed to process data...
     n_quad <- out[['meta']][['n_quad']]
     
@@ -105,7 +106,8 @@ default_takRsec <- function(type = NULL){
     if(is.null(type)){
         return(sections)
     } else if(type == "takRbt"){
-        sections[["meta"]] <- list(text="takiwaR Metadata", class="takRmeta")
+        sections[["meta"]] <- list(text="takiwaR Metadata", class="takRmeta", 
+                                   required = c("site","date","depth","n_quad","quad_size","gps_lat","gps_long"))
         sections[["substrate"]] <- list(text="Substrate (% Cover)", class="takRperc", quad_dir="col")
         sections[["prim_prod_p"]] <- list(text="Primary Producers (% Cover)", class="takRperc", quad_dir="col")
         sections[["prim_prod_c"]] <- list(text="Primary Producers (Counts)", class="takRcount", quad_dir="col")
@@ -374,6 +376,26 @@ extract_takRmeta <- function(x1, ...){
     return(ext_out)
 }
 
+extract_long <- function(x, what, what_meta=NULL){
+    # Extract a named item as a long-form data frame.
+    # Optionally include meta data in columns.  
+    if(is.null(x[[what]])){
+        return(NULL)
+    }
+    if(all(is.na(x[[what]]))){
+        return(NULL)
+    }
+    tmp <- takRlong(x[[what]])
+    if(!is.null(what_meta)){
+        for(a in 1:length(what_meta)){
+            tmp[what_meta[a]] <- attr(tmp, paste0("takRmeta_", what_meta[a]))
+        }
+    }
+    inx <- stringr::str_detect(names(attributes(tmp)), "^takR")
+    attributes(tmp)[inx] <- NULL
+    return(tmp)
+}
+
 toattr_takRmeta <- function(obj, meta=list()){
     if(!inherits(meta, "takRmeta")){
         stop("'meta' must be of class 'takRmeta'")
@@ -385,6 +407,3 @@ toattr_takRmeta <- function(obj, meta=list()){
     }
     return(obj)
 }
-
-
-

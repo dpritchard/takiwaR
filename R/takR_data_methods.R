@@ -10,9 +10,11 @@ takRvalidate <- function(x, ...) {
     }
 }
 
-takRvalidate.takRmeta <- function(x, ...){
-    # Deal with required values
-    req_vals <- c("site", "date", "depth", "n_quad", "quad_size", "gps_lat", "gps_long")
+takRvalidate.takRmeta <- function(x, req_vals = NULL, ...){
+    # Fall back to old behaviour
+    if(all(is.null(req_vals))){
+        req_vals <- c("site", "date", "depth", "n_quad", "quad_size", "gps_lat", "gps_long")
+    }
     val_locs <- which(req_vals %in% names(x))
     if(length(val_locs) == 0){
         missing <- req_vals
@@ -117,15 +119,19 @@ takRcombine.takRperc <- function(x1, x2, ...){
     all_meta <- extract_takRmeta(x1, x2, ...) # First grab all the metadata
     all_inp <- c(list(x1), list(x2), list(...))
     original_length <- length(all_inp) # Needed for averaging, below
-    #Find out which objects are empty, if any.
-    empty <- unlist(lapply(all_inp, inherits, what='takRempty'))
-    if(all(empty)){
+    # Find out which objects are null
+    null_obj <- unlist(lapply(all_inp, is.null))
+    # Find out which objects are empty, if any.
+    empty_obj <- unlist(lapply(all_inp, inherits, what='takRempty'))
+    # Join objects
+    null_empty <- as.logical(null_obj+empty_obj)
+    if(all(null_empty)){
         all_dat <- NA
         class(all_dat) <- c('takRperc', 'takRempty', class(all_dat))
         return(all_dat)
     }
-    # Remove empty sections
-    all_inp <- all_inp[!empty]
+    # Remove null or empty sections
+    all_inp <- all_inp[!null_empty]
     rowcount <- unlist(lapply(all_inp, nrow))
     if(!compare(rowcount)){
         stop("All inputs must have the same number of rows (i.e. quadrats).")
@@ -151,15 +157,19 @@ takRcombine.takRcount <- function(x1, x2, ...){
     all_meta <- extract_takRmeta(x1, x2, ...) # First grab all the metadata
     all_inp <- c(list(x1), list(x2), list(...))
     original_length <- length(all_inp) # Not really needed...
-    #Find out which objects are empty, if any.
-    empty <- unlist(lapply(all_inp, inherits, what='takRempty'))
-    if(all(empty)){
+    # Find out which objects are null
+    null_obj <- unlist(lapply(all_inp, is.null))
+    # Find out which objects are empty, if any.
+    empty_obj <- unlist(lapply(all_inp, inherits, what='takRempty'))
+    # Join objects
+    null_empty <- as.logical(null_obj+empty_obj)
+    if(all(null_empty)){
         all_dat <- NA
         class(all_dat) <- c('takRcount', 'takRempty', class(all_dat))
         return(all_dat)
     }
-    # Remove empty sections
-    all_inp <- all_inp[!empty]
+    # Remove null or empty sections
+    all_inp <- all_inp[!null_empty]
     rowcount <- unlist(lapply(all_inp, nrow))
     if(!compare(rowcount)){
         stop("All inputs must have the same number of rows (i.e. quadrats).")
@@ -184,15 +194,19 @@ takRcombine.takRsf <- function(x1, x2, ...){
     all_meta <- extract_takRmeta(x1, x2, ...) # First grab all the metadata
     all_inp <- c(list(x1), list(x2), list(...))
     original_length <- length(all_inp) # Not really needed
-    #Find out which objects are empty, if any.
-    empty <- unlist(lapply(all_inp, inherits, what='takRempty'))
-    if(all(empty)){
+    # Find out which objects are null
+    null_obj <- unlist(lapply(all_inp, is.null))
+    # Find out which objects are empty, if any.
+    empty_obj <- unlist(lapply(all_inp, inherits, what='takRempty'))
+    # Join objects
+    null_empty <- as.logical(null_obj+empty_obj)
+    if(all(null_empty)){
         all_dat <- NA
         class(all_dat) <- c('takRsf', 'takRempty', class(all_dat))
         return(all_dat)
     }
-    # Remove empty sections
-    all_inp <- all_inp[!empty]
+    # Remove null or empty sections
+    all_inp <- all_inp[!null_empty]
     rowcount <- unlist(lapply(all_inp, nrow))
     if(!compare(rowcount)){
         stop("All inputs must have the same number of rows (i.e. quadrats).")
@@ -277,12 +291,18 @@ print.takRsec <- function(x, ...){
                 dirtext <- ifelse(x[[a]]$quad_dir=="col", "in columns", "in rows")
                 cat("\n", stringr::str_pad("", width = padwidth1+1), "quadrats: ", dirtext, sep="")
             }
-            if(!is.null(x[[a]]$range)){
-                cat("\n", stringr::str_pad("", width = padwidth1+1), "   range: ", x[[a]]$range[1], " to ", x[[a]]$range[2], sep="")
-            } 
-            if(!is.null(x[[a]]$units)){
-                cat(" ", x[[a]]$units, sep="")
+            if(!is.null(x[[a]]$required)){
+                cat("\n", stringr::str_pad("", width = padwidth1+1), "required: ", 
+                    paste0(x[[a]]$required, collapse = ", "), sep="")
             }
+            if(!is.null(x[[a]]$takRsec_range)){
+                cat("\n", stringr::str_pad("", width = padwidth1+1), "   range: ", x[[a]]$takRsec_range[1], 
+                    " to ", x[[a]]$takRsec_range[2], sep="")
+            } 
+            if(!is.null(x[[a]]$takRsec_units)){
+                cat(" ", x[[a]]$takRsec_units, sep="")
+            }
+            
             cat("\n")
         }
     }

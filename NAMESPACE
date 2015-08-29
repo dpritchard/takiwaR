@@ -1,7 +1,8 @@
 export(mchi, mchi_wspp)
 export(cm2in, error_bar, mtexti, se, rnt, all_is_na, is_zero, make_key, compare)
+export(set_par, set_large_par, setup_plot)
 export(read_takRbt, default_takRsec, vals_takRsec)
-export(add_takRmeta, set_takRmeta, extract_takRmeta, toattr_takRmeta)
+export(add_takRmeta, set_takRmeta, extract_long, extract_takRmeta, toattr_takRmeta)
 export(takRcombine, takRlong, takRvalidate)
 
 S3method(print, mchi)

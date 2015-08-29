@@ -10,7 +10,7 @@ compare <- function(v){
     return(all(res))
 }
 
-make_key <- function(string, subs = "takR_"){
+make_key <- function(string, subs = "takR"){
     key <- as.character(string)
     key <- stringr::str_trim(key)
     key <- stringr::str_replace_all(key, "\\W", "_") # Find anything that is not a word and replace
@@ -19,8 +19,8 @@ make_key <- function(string, subs = "takR_"){
     #key <- make.names(key)
     key <- make.unique(key, sep="_")
     key <- stringr::str_to_lower(key)
-    key <- stringr::str_replace(key, "^\\_", paste0(subs, "_")) # Replace underscores at the beginning with TAK_
-    key <- stringr::str_replace(key, "^(\\d)", paste0(subs, "_\\1")) # Replace numbers at the beginning with TAK_#
+    key <- stringr::str_replace(key, "^\\_", paste0(subs, "_")) # Replace underscores at the beginning with takR_
+    key <- stringr::str_replace(key, "^(\\d)", paste0(subs, "_\\1")) # Replace numbers at the beginning with takR_#
     return(key)
 }
 
@@ -97,4 +97,31 @@ mtexti <- function(text, side, off = 0.25,
     if(4 == side)
         xpos <- usr[2] + upi[1] * off
     text(x=xpos, y=ypos, text, xpd=NA, srt=srt, ...)
+}
+
+set_par <- function(brewer.n=8, brewer.name="Dark2", cex.lab=1, cex.main=1.2, cex.axis=1, mar=c(2.5,2.5,1.6,1.1), mgp=c(1.5,.5,0), las=1, ...){
+    par(mar=mar, mgp=mgp, cex.lab=cex.lab, cex.main=cex.main, cex.axis=cex.axis, las=las)
+    par(...)
+    pal <- c("#000000", RColorBrewer::brewer.pal(brewer.n, brewer.name))
+    palette(pal)
+}
+
+set_large_par <- function(brewer.n=8, brewer.name="Dark2", cex.lab=2, cex.main=2, cex.axis=1.5, mar=c(5.1,5.1,3.5,2.1), mgp=c(3,1,0), las=1, ...){
+    par(mar=mar, mgp=mgp, cex.lab=cex.lab, cex.main=cex.main, cex.axis=cex.axis, las=las)
+    par(...)
+    pal <- c("#000000", RColorBrewer::brewer.pal(brewer.n, brewer.name))
+    palette(pal)
+}
+
+setup_plot <- function(x, y, yerr=NA, xlab="", ylab="", ...) {
+    xvals <- c(min(x, na.rm = T), max(x, na.rm = T))
+    yvals <- c(min(y, na.rm = T), max(y, na.rm = T))
+    if(!all(is.na(yerr))){
+        yvals[1] <- yvals[1]-yerr
+        yvals[2] <- yvals[2]+yerr
+    } 
+    plot(xvals, yvals, axes=F, type="n", xlab=xlab, ylab=ylab, ...)
+    box()
+    axis(1, lwd = 0, lwd.ticks = 1)
+    axis(2, lwd = 0, lwd.ticks = 1)
 }
