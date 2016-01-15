@@ -4,7 +4,7 @@ takRvalidate <- function(x, ...) {
     if(inherits(x, "takRempty")){
         # Empty section
         warning('No data in this section.', immediate. = TRUE, call. = FALSE)
-        return(x)
+        invisible(x)
     } else {
         UseMethod("takRvalidate")
     }
@@ -33,7 +33,7 @@ takRvalidate.takRmeta <- function(x, req_vals = NULL, ...){
     }
     # Date parsing? etc.
     #class(x) <- c("takRmeta", class(x))
-    return(x)
+    invisible(x)
 }
 
 takRvalidate.takRperc <- function(x, ...){
@@ -47,7 +47,7 @@ takRvalidate.takRperc <- function(x, ...){
     if(nrow(toohigh) > 0){
         warning("At least one value has been entered with > 100% cover. Are you sure?", immediate. = TRUE, call. = FALSE)
     }
-    return(x)
+    invisible(x)
 }
 
 takRvalidate.takRcount <- function(x, ...){
@@ -58,7 +58,7 @@ takRvalidate.takRcount <- function(x, ...){
     ## Tests for count data
     ## Currently we have none?
     # Should test for integers?
-    return(x)
+    invisible(x)
 }
 
 takRvalidate.takRsf <- function(x, ...){
@@ -75,7 +75,7 @@ takRvalidate.takRsf <- function(x, ...){
             warning("At least one creature is greater than ", maxsize, units, ". Are you sure?", immediate. = TRUE, call. = FALSE)
         }
     }
-    return(x)
+    invisible(x)
 }
 
 # takRcombine... Combine is for combining data from subquadrats into larger quadrats
@@ -136,18 +136,12 @@ takRcombine.takRperc <- function(x1, x2, ...){
     if(!compare(rowcount)){
         stop("All inputs must have the same number of rows (i.e. quadrats).")
     }
-    # cbind all the data
-    all_dat <- NULL
-    for(a in 1:length(all_inp)){
-        all_dat <- cbind(all_dat, all_inp[[a]])
-    }
-    # Convert NA's to zeros (OK for summing)
-    all_dat[is.na(all_dat)] <- 0
-    all_dat <- sapply(unique(colnames(all_dat)), function(x){
-        rowSums(all_dat[, grep(x, colnames(all_dat)), drop=FALSE])}
-    )
-    #all_dat[all_dat==0] <- NA # Reconvert zeros to NA
-    all_dat <- all_dat/original_length # Convert to a mean based on original input length
+    # Melt and then reshape the input data by summing the double-ups...
+    all_dat <- sum_on_col(all_inp)
+    
+    # Convert to a mean based on original input length
+    all_dat <- all_dat/original_length 
+    
     all_dat <- toattr_takRmeta(all_dat, all_meta) # Add back the combined metadata
     class(all_dat) <- c("takRperc", "takRwide", class(all_dat))
     return(all_dat)
@@ -174,17 +168,9 @@ takRcombine.takRcount <- function(x1, x2, ...){
     if(!compare(rowcount)){
         stop("All inputs must have the same number of rows (i.e. quadrats).")
     }
-    # cbind all the data
-    all_dat <- NULL
-    for(a in 1:length(all_inp)){
-        all_dat <- cbind(all_dat, all_inp[[a]])
-    }
-    # Convert NA's to zeros (OK for summing)
-    all_dat[is.na(all_dat)] <- 0
-    all_dat <- sapply(unique(colnames(all_dat)), function(x){
-        rowSums(all_dat[, grep(x, colnames(all_dat)), drop=FALSE])}
-    )
-    #all_dat[all_dat==0] <- NA # Reconvert zeros to NA
+    # Melt and then reshape the input data by summing the double-ups...
+    all_dat <- sum_on_col(all_inp)
+    
     all_dat <- toattr_takRmeta(all_dat, all_meta) # Add back the combined metadata
     class(all_dat) <- c("takRcount", "takRwide", class(all_dat))
     return(all_dat)
@@ -225,7 +211,7 @@ summary.takRbt <- function(object, ...){
     for(key in keys){
         out[[key]] <- summary(object[[key]])
     }
-    class(out) <- c("takRsummary", class(out))
+    class(out) <- c("summary.takRbt", class(out))
     return(out)
 }
 
@@ -240,7 +226,9 @@ summary.takRperc <- function(object, ...){
     dat_n <- apply(object, 2, length)
     dat_sd <- apply(object, 2, sd)
     dat_se <- dat_sd/sqrt(dat_n)
-    out <- cbind("mean"=dat_mean, "median"=dat_median, "n"=dat_n, "sd"=dat_sd, "se"=dat_se)
+    out <- cbind("mean"=dat_mean, "median"=dat_median, 
+                 "n"=dat_n, "sd"=dat_sd, "se"=dat_se)
+    class(out) <- c("summary.takRperc", class(out))
     return(out)
 }
 
@@ -255,24 +243,69 @@ summary.takRcount <- function(object, ...){
     dat_n <- apply(object, 2, length)
     dat_sd <- apply(object, 2, sd)
     dat_se <- dat_sd/sqrt(dat_n)
-    out <- cbind("mean"=dat_mean, "median"=dat_median, "n"=dat_n, "sd"=dat_sd, "se"=dat_se)
+    out <- cbind("mean"=dat_mean, "median"=dat_median, "n"=dat_n, 
+                 "sd"=dat_sd, "se"=dat_se)
+    class(out) <- c("summary.takRcount", class(out))
     return(out)
 }
 
 summary.takRsf <- function(object, ...){
+    out <- list()
+    n_quad <- attr(x = object, which = "takRmeta_n_quad", exact = TRUE)
+    quad_size <- attr(x = object, which = "takRmeta_quad_size", exact = TRUE)
+    takRsec_units <- attr(x = object, which = "takRsec_units", exact = TRUE)
+    
+    if(is.null(n_quad)){warning("n_quad not supplied as an attibute.", 
+                                call. = FALSE, immediate. = TRUE)}
+    if(is.null(quad_size)){warning("quad_size not supplied as an attibute.", 
+                                   call. = FALSE, immediate. = TRUE)}
+    
     if(inherits(object, what = "takRempty")){
-        out <- NA
+        if(is.null(n_quad) || is.na(n_quad)){
+            out[["density"]] <- NA
+            out[["density_summary"]] <- NA
+        } else {
+            out[["density"]] <- rep(0, times = n_quad)
+            out[["density_summary"]] <- cbind("mean" = 0, "median" = 0, 
+                                          "n" = n_quad, "sd" = 0, "se" = 0)
+        }
+        out[["data_summary"]] <- NA
         class(out) <- c("takRempty", class(out))
         return(out)
     }
-    object <- object[!is.na(object)]
-    dat_mean <- mean(object)
-    dat_median <- median(object)
-    dat_n <- length(na.omit(object))
-    dat_sd <- sd(object)
+    
+    # If not empty, we need to do some math!
+    not_na <- object[!is.na(object)]
+    
+    # Density by quadrat (i.e. row) 
+    den_quad <- apply(object, 1, function(x){sum(!is.na(x))})
+    den_quad <- den_quad*(1/quad_size)
+    out[["density"]] <- den_quad
+    
+    # Density summary
+    #den_all <- length(not_na)/n_quad 
+    #den_all <- den_all*(1/quad_size) # Overall, no error. Same as mean, below.
+    den_mean <- mean(den_quad)
+    den_median <- median(den_quad)
+    den_n <- length(den_quad)
+    den_sd <- sd(den_quad)
+    den_se <- den_sd/sqrt(den_n)
+    out[["density_summary"]] <- cbind("mean"=den_mean, "median"=den_median, 
+                                  "n"=den_n, "sd"=den_sd, "se"=den_se)
+    rownames(out[["density_summary"]]) <- "All"
+    
+    # Data (usually "size") summary
+    dat_mean <- mean(not_na)
+    dat_median <- median(not_na)
+    dat_n <- length(not_na)
+    dat_sd <- sd(not_na)
     dat_se <- dat_sd/sqrt(dat_n)
-    out <- cbind("mean"=dat_mean, "median"=dat_median, "n"=dat_n, "sd"=dat_sd, "se"=dat_se)
-    rownames(out) <- c("All")
+    out[["data_summary"]] <- cbind("mean"=dat_mean, "median"=dat_median, 
+                               "n"=dat_n, "sd"=dat_sd, "se"=dat_se)
+    rownames(out[["data_summary"]]) <- "All"
+    attr(out[["data_summary"]], "takRsec_units") <- takRsec_units
+    
+    class(out) <- c("summary.takRsf", class(out))
     return(out)
 }
 
@@ -321,7 +354,7 @@ print.takRmeta <- function(x, ...){
     }
 }
 
-print.takRsummary <- function(x, ...){
+print.summary.takRbt <- function(x, ...){
     keys <- names(x)
     for(key in keys){
         cat("\n", key, "\n", sep="")
@@ -343,12 +376,32 @@ print.takRperc <- function(x, ...){
     NextMethod("print", na.print = "NA", ...)
 }
 
+print.summary.takRperc <- function(x, digits = getOption("digits")-3, ...){
+    print.table(x, digits = digits)
+}
+
 print.takRcount <- function(x, ...){
     NextMethod("print", na.print = "NA", ...)
 }
 
+print.summary.takRcount <- function(x, digits = getOption("digits")-3, ...){
+    print.table(x, digits = digits)
+}
+
 print.takRsf <- function(x, ...){
     NextMethod("print", na.print = "", ...)
+}
+
+print.summary.takRsf <- function(x, digits = getOption("digits")-3, ...){
+    if(all(is.na(x[["density"]]))){
+        cat("< Density Information Unavailable >\n")
+    } else {
+        cat("Density (per m^2)\n")
+        print.table(x[["density_summary"]], digits = digits)
+        cat("\n")
+    }
+    cat(paste0("Data (", attr(x[["data_summary"]], "takRsec_units", exact = TRUE), ")\n"))
+    print.table(x[["data_summary"]], digits = digits)
 }
 
 print.takRwide <- function(x, ...){
@@ -380,7 +433,7 @@ takRlong.takRperc <- function(x, ...){
     #out <- as.matrix(out)
     #dimnames(out) <- list(NULL, c("takR_quad", "takR_var", "takR_val"))
     names(out) <- c("takR_quad", "takR_var", "takR_val")
-    out <- takR_map_attrs(x, out)
+    out <- map_attributes(x, out)
     return(out)
 }
 
@@ -389,7 +442,7 @@ takRlong.takRcount <- function(x, ...){
     #out <- as.matrix(out)
     #dimnames(out) <- list(NULL, c("takR_quad", "takR_var", "takR_val"))
     names(out) <- c("takR_quad", "takR_var", "takR_val")
-    out <- takR_map_attrs(x, out)
+    out <- map_attributes(x, out)
     return(out)
 }
 
@@ -399,19 +452,7 @@ takRlong.takRsf <- function(x, ...){
     #out <- as.matrix(out)
     #dimnames(out) <- list(NULL, c("takR_quad", "takR_val"))
     names(out) <- c("takR_quad", "takR_val")
-    out <- takR_map_attrs(x, out)
-    return(out)
-}
-
-takR_map_attrs <- function(x, out) {
-    # Add back attributes beginning with "takRmeta_" or "takRsec_"
-    indx <- stringr::str_detect(names(attributes(x)), "^(takRmeta_|takRsec_)")
-    if(any(indx)){
-        attr_names <- names(attributes(x))[indx]
-        for(a in 1:length(attr_names)){
-            attr(out, attr_names[a]) <- attr(x, attr_names[a])
-        }
-    }
+    out <- map_attributes(x, out)
     return(out)
 }
 
@@ -420,7 +461,7 @@ plot.takRsf <- function(x, main = NULL, xlab = "Size", ylab = "Frequency", las =
     dat <- x[!is.na(x)]
     old_par_mar <- par()$mar
     par(mar=c(5,4,1,1))
-    hist(dat, main = NULL, xlab="Size", ylab="Frequency", las = 1, ...)
+    hist(dat, main = NULL, xlab="Size", ylab="Frequency", las = las, ...)
     par(mar=old_par_mar)
 }
 

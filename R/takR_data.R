@@ -1,12 +1,37 @@
 read_takRbt <- function(file, use_logfile = FALSE, sections = default_takRsec("takRbt")){
+    ## Close the logfile on exit, even (perhaps, especially) if there is an error.  
+    on.exit(expr = {
+        if(use_logfile){
+            sink(type="message")
+            close(logfile)
+        }
+    })
+    
     if(use_logfile){
         logfile <- paste0(tools::file_path_sans_ext(file), ".TAKlog")
         logfile <- file(logfile, open="wt")
         sink(file = logfile, type = "message")
     }
     message("Reading file '", file, "'")
-    raw <- readxl::read_excel(file, col_names=FALSE)
-    raw <- data.frame(raw) # Fucking dplyr bullshit
+    
+    ## Sorting out readxl's guessing of column numbers
+    # Also forcing all data to be read as "text". We will coerce it later.  
+    ext <- tools::file_ext(file)
+    if(ext == "xlsx"){
+        col_types <- rep("text", readxl:::xlsx_dim(path = file)[2])
+        col_names <- paste0("col", 1:length(col_types))
+    } else if(ext =="xls"){
+        warning("Old Excel file format, assuming less than 1000 rows.", 
+                immediate. = TRUE, call. = FALSE)
+        col_types <- readxl:::xls_col_types(path = file, n = 1000L)
+        col_types <- rep("text", length(col_types))
+        col_names <- paste0("col", 1:length(col_types))
+    } else {
+        stop("Only excel files are supported. I know. Sorry.")
+    }
+    
+    raw <- readxl::read_excel(file, col_names = col_names, col_types = col_types)
+    raw <- data.frame(raw) # Fucking datatable bullshit
     
     # Now, finding sections
     message("Finding sections...")
@@ -65,12 +90,6 @@ read_takRbt <- function(file, use_logfile = FALSE, sections = default_takRsec("t
         message("Validating data in section '", ss_name, "'...")
         vd <- takRvalidate(cd)
         out[[ss_name]] <- vd
-    }
-    
-    # Close the logfile
-    if(use_logfile){
-        sink(type="message")
-        close(logfile)
     }
     
     # Return this
@@ -200,7 +219,7 @@ clean_takRmeta <- function(meta){
     return(meta_out)
 }
 
-clean_takRdata <- function(dat, quad_dir, n_quad, quad_pfix = FALSE, data_pfix = FALSE, implicit_zeros = TRUE){
+clean_takRdata <- function(dat, quad_dir, n_quad, data_pfix = FALSE, implicit_zeros = TRUE){
     # quad_dir="col" means quadrats along columns
     # quad_dir="row" means quadrats down rows
     
@@ -261,7 +280,8 @@ clean_takRdata <- function(dat, quad_dir, n_quad, quad_pfix = FALSE, data_pfix =
             droprows <- seq(from = n_quad+1, to = nrow(dat), by = 1)
             droped <- dat[droprows,]
             if(!all_is_na(droped)){
-                warning(paste0("Data exist in rows that were excluded using n_quad = ", n_quad, "."), immediate. = TRUE, call. = FALSE)
+                warning(paste0("Data exist in rows that were excluded using n_quad = ", n_quad, "."), 
+                        immediate. = TRUE, call. = FALSE)
             }
             dat <- dat[-droprows, , drop=FALSE]
             first_col <- first_col[!droprows] # Update the first column info
@@ -284,18 +304,15 @@ clean_takRdata <- function(dat, quad_dir, n_quad, quad_pfix = FALSE, data_pfix =
     }
     
     ## Name rows (quadrats)
-    if(nrow(dat) > 0){
-        if(is.character(quad_pfix)){
-            rownames(dat) <- paste0(quad_pfix, sprintf("%02d", 1:nrow(dat)))  
-        } else {
-            rownames(dat) <- NULL
-        }
-    }
+    # Always named 001:n
+    rownames(dat) <- sprintf("%03d", 1:nrow(dat))  
     
+    ## TODO: Document this. Enforce this in all objects of 'takRwide'
+
     ## Name columns (data)
     if(ncol(dat) > 0){
         if(is.character(data_pfix)){
-            colnames(dat) <- paste0(data_pfix, sprintf("%02d", 1:ncol(dat)))
+            colnames(dat) <- paste0(data_pfix, sprintf("%01d", 1:ncol(dat)))
         } else if (!all_is_na(first_col) & quad_dir == "col") {
             colnames(dat) <- first_col
         } else {
@@ -319,7 +336,7 @@ clean_takRdata <- function(dat, quad_dir, n_quad, quad_pfix = FALSE, data_pfix =
 
 ## Potential methods? Not yet... Only objects are only classed after validation
 add_takRmeta <- function(meta, add=list()){
-    if(!is.list(add) | is_zero(length(names(meta)))){
+    if(!is.list(add) | is_zero(length(names(add)))){
         stop("'add' must be a named list")
     }
     if(is_zero(length(add))){
@@ -376,6 +393,20 @@ extract_takRmeta <- function(x1, ...){
     return(ext_out)
 }
 
+toattr_takRmeta <- function(obj, meta=list()){
+    # Take an item of takRmeta and add it to the object's attributes...
+    # Returns the object with the attributes added.  
+    if(!inherits(meta, "takRmeta")){
+        stop("'meta' must be of class 'takRmeta'")
+    }
+    meta_names <- names(meta)
+    for(a in 1:length(meta_names)){
+        atr_name <- paste0("takRmeta_", meta_names[a])
+        attr(obj, atr_name) <- meta[[meta_names[a]]]
+    }
+    return(obj)
+}
+
 extract_long <- function(x, what, what_meta=NULL){
     # Extract a named item as a long-form data frame.
     # Optionally include meta data in columns.  
@@ -394,16 +425,4 @@ extract_long <- function(x, what, what_meta=NULL){
     inx <- stringr::str_detect(names(attributes(tmp)), "^takR")
     attributes(tmp)[inx] <- NULL
     return(tmp)
-}
-
-toattr_takRmeta <- function(obj, meta=list()){
-    if(!inherits(meta, "takRmeta")){
-        stop("'meta' must be of class 'takRmeta'")
-    }
-    meta_names <- names(meta)
-    for(a in 1:length(meta_names)){
-        atr_name <- paste0("takRmeta_", meta_names[a])
-        attr(obj, atr_name) <- meta[[meta_names[a]]]
-    }
-    return(obj)
 }
