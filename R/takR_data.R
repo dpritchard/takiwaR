@@ -358,7 +358,7 @@ set_takRmeta <- function(meta, set=list()){
         stop("'set' must be a named list")
     }
     if(is_zero(length(set))){
-        stop("'se' cannot be an empty list.")
+        stop("'set' cannot be an empty list.")
     }
     for(name in names(set)){
         key <- make_key(name)
@@ -419,7 +419,15 @@ extract_long <- function(x, what, what_meta=NULL){
     tmp <- takRlong(x[[what]])
     if(!is.null(what_meta)){
         for(a in 1:length(what_meta)){
-            tmp[what_meta[a]] <- attr(tmp, paste0("takRmeta_", what_meta[a]))
+            metadat <- attr(tmp, paste0("takRmeta_", what_meta[a]))
+            if(length(metadat) > 1){
+                metanames <- c(what_meta[a], paste0(what_meta[a], "_", 2:length(metadat)))
+            } else {
+                metanames <- what_meta[a]
+            }
+            for(b in 1:length(metanames)){
+                tmp[metanames[b]] <- metadat[b]
+            }
         }
     }
     inx <- stringr::str_detect(names(attributes(tmp)), "^takR")

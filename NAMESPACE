@@ -4,6 +4,7 @@ export(error_bar, set_par, mtexti, setup_plot, theme_takiwaR)
 export(read_takRbt, default_takRsec, vals_takRsec)
 export(add_takRmeta, set_takRmeta, extract_long, extract_takRmeta, toattr_takRmeta)
 export(takRcombine, takRlong, takRvalidate)
+#export(read_takRdat)
 
 S3method(print, mchi)
 
