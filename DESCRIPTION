@@ -1,6 +1,6 @@
 Package: takiwaR
 Title: Methods for "State of the Takiwa" Monitoring
-Version: 0.0.1.0
+Version: 0.0.200
 Date: 2015-01-22
 Authors@R: person("Daniel", "Pritchard", email= "daniel@pritchard.co", role = c("aut", "cre"))
 URL: http://takiwa.org.nz
