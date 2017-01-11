@@ -3,6 +3,31 @@ cm2in <- function(x){
     return(cm)
 }
 
+# rep_quiet: Quietly return NULL if x is NULL (while retaining other messages from rep)
+rep_quiet <- function(x, ...){
+    if(is.null(x)){
+        return(NULL)
+    } else {
+        rep(x, ...)
+    }
+}
+
+is.wholenumber <- function(x, tol = .Machine$double.eps^0.5){
+    if(!is.numeric(x)){
+        return(FALSE)
+    } else {
+        indx <- abs(x - round(x)) < tol
+        return(indx)
+    }
+}
+
+# # expand_args: Build an argument list using recycling rules
+# expand_args <- function(...){
+#     dots <- list(...)
+#     max_length <- max(sapply(dots, length))
+#     lapply(dots, rep_quiet, length.out = max_length)
+# }
+
 compare <- function(v){
     first <- v[1]
     rest <- as.list(v[-1])
@@ -48,31 +73,6 @@ rnt <- function(min = 0, max = 30, by = 1, nrow = 10, ncol = 10,
     return(samples)
 }
 
-is_zero <- function(x, strict_int = FALSE){
-    if(strict_int){
-        return(x == 0L)
-    } else {
-        return(abs(x) <= .Machine$double.eps)
-    }
-}
-
-all_is_na <- function(x){
-    allis <- all(is.na(x))
-    return(allis)
-}
-
-map_attributes <- function(x, out, regex = "^(takRmeta_|takRsec_)") {
-    # Add back attributes beginning with "takRmeta_" or "takRsec_" from `x` to `out`
-    indx <- stringr::str_detect(names(attributes(x)), regex)
-    if(any(indx)){
-        attr_names <- names(attributes(x))[indx]
-        for(a in 1:length(attr_names)){
-            attr(out, attr_names[a]) <- attr(x, attr_names[a])
-        }
-    }
-    return(out)
-}
-
 sum_on_col <- function(x){
     # Sum columns with matching names
     # This works equally well if x is a list becuase melt operates by melting the components of a list...
@@ -90,4 +90,35 @@ sum_on_col <- function(x){
     # Map any "takR*" attributes
     x_out <- map_attributes(x, x_out)
     return(x_out)
+}
+
+# Add a named class to an object
+add_class <- function(x, class, prepend = TRUE){
+    if(inherits(x, class)){
+        return(x)
+    }
+    if(prepend){
+        class(x) <- c(class, class(x))
+    } else {
+        class(x) <- c(class(x), class)
+    }
+    return(x)
+}
+
+theme_takiwaR <- function(base_size=12, base_family="") {
+    grey <- "#737373"
+    black <- "#000000"
+    theme_bw(base_size=base_size, base_family=base_family) +
+        theme(
+            line = element_line(colour = grey),
+            rect = element_rect(fill = "white", colour = NA),
+            text = element_text(colour = black),
+            axis.ticks = element_line(colour = black),
+            legend.key = element_rect(colour = NA),
+            ## Examples do not use grid lines
+            panel.border = element_rect(colour = black),
+            panel.grid = element_blank(),
+            plot.background=element_blank(),
+            strip.background = element_rect(fill="white", colour=NA)
+        )
 }

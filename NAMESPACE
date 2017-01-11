@@ -1,10 +1,29 @@
 export(mchi, mchi_wspp)
-export(cm2in, compare, make_key, se, rnt, is_zero, all_is_na, map_attributes, sum_on_col)
+export(cm2in, compare, make_key, se, rnt, is_zero, all_is_na, map_attributes, sum_on_col, is.wholenumber)
 export(error_bar, set_par, mtexti, setup_plot, theme_takiwaR)
-export(read_takRbt, default_takRsec, vals_takRsec)
+
 export(add_takRmeta, set_takRmeta, extract_long, extract_takRmeta, toattr_takRmeta)
-export(takRcombine, takRlong, takRvalidate)
-#export(read_takRdat)
+export(takRcombine, takRlong, validate)
+export(read_takRexcel)
+
+export(new_read_definition)
+export(takRblock)
+
+exportPattern("^has_*", "^lacks_*", "^is_*", "^is_not_*")
+
+# takR_validate.R
+export(make_validator, validate)
+export(validators, "validators<-")
+export(predicates, "predicates<-")
+S3method(print, takRpredicate)
+S3method(print, takRpredicates)
+
+S3method(validate, takRcollection)
+S3method(validate, takRmeta)
+S3method(validate, takRdata)
+S3method(validate, takRdef)
+S3method(validate, default)
+# Mroe to do here
 
 S3method(print, mchi)
 
@@ -29,7 +48,7 @@ S3method(print, takRcount)
 S3method(print, summary.takRcount)
 S3method(print, takRsf)
 S3method(print, summary.takRsf)
-S3method(print, takRsec)
+S3method(print, takRdef)
 
 S3method(print, takRwide)
 
@@ -41,7 +60,3 @@ S3method(takRlong, takRsf)
 S3method(plot, takRsf)
 S3method(plot, takRperc)
 S3method(plot, takRcount)
-
-S3method(takRvalidate, takRperc)
-S3method(takRvalidate, takRcount)
-S3method(takRvalidate, takRsf)
