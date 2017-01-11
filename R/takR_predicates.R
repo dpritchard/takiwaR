@@ -31,6 +31,35 @@ has_empty_rownames <- function(x){
     return(out)
 }
 
+has_unique_names <- function(x){
+    if(!assertive::has_names(x)){
+        stop("Does not have names, so can not determine if they are unique")
+    }
+    out <- has_no_duplicates(names(x))
+    return(out)
+}
+
+has_unique_colnames <- function(x){
+    if(!assertive::has_colnames(x)){
+        stop("Does not have colnames, so can not determine if they are unique")
+    }
+    out <- has_no_duplicates(colnames(x))
+    return(out)
+}
+
+has_unique_rownames <- function(x){
+    if(!assertive::has_rownames(x)){
+        stop("Does not have rownnames, so can not determine if they are unique")
+    }
+    out <- has_no_duplicates(rownames(x))
+    return(out)
+}
+
+
+
+
+
+
 is_na_names <- function(x){
     if(lacks_names(x)){return(FALSE)}
     out <- is_na(names(x))
