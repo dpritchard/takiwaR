@@ -119,9 +119,9 @@ takRblock_by_name <- function(.name, .text = NULL, .str_in = NULL, .str_out = NU
     if(!is.null(str_in)) out[["str_in"]] <- str_in
     if(!is.null(str_out)) out[["str_out"]] <- str_out
     if(!is.null(fill)) out[["fill"]] <- fill
-    stop("Fuckup here. Fixme!")
-    # We shoudl be using validate here! But the defualt validation section is not ready yet
-    if(!is.null(n)) out[["n"]] <- n # This does not work (becuase n is null in the default)
+    # stop("Fuckup here. Fixme!")
+    # We should be using validate here! But the defualt validation section is not ready yet
+    if(!is.null(n)) out[["n"]] <- n
     return(out)
 }
 

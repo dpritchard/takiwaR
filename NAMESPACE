@@ -9,7 +9,7 @@ export(read_takRexcel)
 export(new_read_definition)
 export(takRblock)
 
-exportPattern("^has_*", "^lacks_*", "^is_*", "^is_not_*")
+exportPattern("^has_*", "^is_*")
 
 # takR_validate.R
 export(make_validator, validate)

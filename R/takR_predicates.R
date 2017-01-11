@@ -7,38 +7,36 @@
 #     return(out)
 # }
 
-has_names <- function(x){
-    out <- !is.null(names(x))
-    return(out)
-}
-lacks_names <- function(x){
-    out <- !has_names(x)
-    return(out)
-}
-is_empty_names <- function(x){
-    if(lacks_names(x)){
-        return(FALSE)
+has_empty_names <- function(x){
+    if(!assertive::has_names(x)){
+        stop("Does not have names, so can not determine if they are empty")
     }
-    out <- is_empty_string(names(x))
+    out <- !nzchar(names(x))
     return(out)
 }
-is_not_empty_names <- function(x){
-    out <- !is_empty_names(x)
+
+has_empty_colnames <- function(x){
+    if(!assertive::has_colnames(x)){
+        stop("Does not have colnames, so can not determine if they are empty")
+    }
+    out <- !nzchar(colnames(x))
     return(out)
 }
+
+has_empty_rownames <- function(x){
+    if(!assertive::has_rownames(x)){
+        stop("Does not have rownnames, so can not determine if they are empty")
+    }
+    out <- !nzchar(rownames(x))
+    return(out)
+}
+
 is_na_names <- function(x){
     if(lacks_names(x)){return(FALSE)}
     out <- is_na(names(x))
     return(out)
 }
-is_not_na_names <- function(x){
-    out <- !is_na_names(x)
-    return(out)
-}
-is_empty_string <- function(x){
-    out <- x == ""
-    return(out)
-}
+
 is_not_empty_string <- function(x){
     out <- !is_empty_string(x)
     return(out)
