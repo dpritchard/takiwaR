@@ -1,7 +1,16 @@
 # Print Methods
+print.takRcollection <- function(x, ...){
+    keys <- names(x)
+    for(key in keys){
+        cat("\n", key, "\n", sep="")
+        cat(rep("-", times=stringr::str_length(key)), "\n", sep="")
+            print(x[[key]], ...)
+    }
+}
+
 print.takRdef <- function(x, ...){
     if(length(x)==0){
-        cat("< Empty Section List >\n")
+        cat("< Empty Definition List >\n")
     } else {
         headers <- names(x)
         f_obj <- "text" # First object to print
@@ -29,7 +38,7 @@ print.takRdef <- function(x, ...){
 }
 
 print.takRempty <- function(x, ...){
-    cat("< Empty Block >\n")
+    cat("< Empty Data Block >\n")
 }
 
 print.takRmeta <- function(x, ...){

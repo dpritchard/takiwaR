@@ -4,11 +4,12 @@ takRblock <- function(name = NULL, str_in = NULL, str_out = NULL, text = NULL, f
     # If name, str_in and str_out are all NULL, return an empty block
     if(all(is.null(c(name, str_in, str_out)))){
         out <- takRblock_empty(.str_in = str_in, .str_out = str_out, .text = text, .fill = fill, .n = n)
+        return(out)
     }
     # If we get this far without returning, we need one of: name, str_in or str_out
     lens <- lengths(list(name, str_in, str_out)) # Should all individually be less than 2 (1 or 0, really)
     if(sum(lens) != 1){
-        stop("You must provide one of 'name', 'str_in' or 'str_out'")
+        stop("You must provide exactly one of 'name', 'str_in' or 'str_out'")
     }
     if(!is.null(name)){
         # If name not null, try takRblock_by_name
@@ -20,6 +21,7 @@ takRblock <- function(name = NULL, str_in = NULL, str_out = NULL, text = NULL, f
         # If str_out not null, try takRblock_by_out_str (this is the only remaining option)
         out <- takRblock_by_out_str(.str_in = str_in, .str_out = str_out, .text = text, .fill = fill, .n = n)
     }
+    
     return(out)
 }
 
@@ -64,7 +66,7 @@ validate_block_input <- function(.text = NULL, .str_in = NULL, .str_out = NULL, 
     if(!is.null(.str_in) && !is.character(.str_in)){stop("`str_in` must be a character string", call. = FALSE)}
     if(!is.null(.str_out) && !is.character(.str_out)){stop("`str_out` must be a character string", call. = FALSE)}
     # Fill can be anything?
-    if(!is.null(.n) && !is.wholenumber(.n)){stop("`n` must be an integer", call. = FALSE)}
+    if(!is.null(.n) && !assertive::is_whole_number(.n)){stop("`n` must be an integer", call. = FALSE)}
     # Checking validity... 
     if(!is.null(.str_in) && !is_default_str_in(.str_in)){
         msg <- paste0("`", .str_in, "` is not a valid input structure\n",
@@ -119,9 +121,11 @@ takRblock_by_name <- function(.name, .text = NULL, .str_in = NULL, .str_out = NU
     if(!is.null(str_in)) out[["str_in"]] <- str_in
     if(!is.null(str_out)) out[["str_out"]] <- str_out
     if(!is.null(fill)) out[["fill"]] <- fill
-    # stop("Fuckup here. Fixme!")
-    # We should be using validate here! But the defualt validation section is not ready yet
-    if(!is.null(n)) out[["n"]] <- n
+    if(out[["str_in"]] %in% c("mrow", "mcol")){
+        if(is.null(n)) stop("`n` can not be NULL for matrix input structures")
+        out[["n"]] <- n
+    }
+    # We should be using validate() here! But the defualt validation section is not ready yet
     return(out)
 }
 
@@ -220,7 +224,7 @@ new_read_definition <- function(sec_names = NULL, n = NULL){
     for(a in seq_along(sec_names)){
         nme <- sec_names[a]
         if(is_default_block_name(nme)){
-            def[[nme]] <- takRblock_by_name(nme)
+            def[[nme]] <- takRblock_by_name(.name = nme, .n = n)
         } else {
             def[[nme]] <- takRblock_empty()
             empty_blocks <- append(empty_blocks, nme)
@@ -231,31 +235,6 @@ new_read_definition <- function(sec_names = NULL, n = NULL){
                       "Manual intervention will be required")
         warning(msg, call. = FALSE)
     }
-    
-    # # 3) Add section objects with defaults if they exist.
-    # ndx_default <- match(sec_names, names(takiwaR:::blocks))
-    # indx <- is.na(ndx_default)
-    # # If there are NA's in ndx_default, it's becuase there are no defualts
-    # if(any(indx)){
-    #     msg <- paste("Empty blocks substitued for one or more sections.\nManual intervention will be required.")
-    #     warning(msg, call. = FALSE)
-    # }
-    # default_nmes <- sec_names[!indx]
-    # for(a in seq_along(default_nmes)){
-    #     def[[default_nmes[a]]] <- takiwaR:::blocks[[default_nmes[a]]]
-    # }
-    # # OK. So at this point we have a placeholder section list.
-    # # 4) If the any object inherits from takRwide, then n is compulsory
-    # # Check and apply
-    # indx <- sapply(def, out_str_inherits, what = "takRwide")
-    # if(any(indx, na.rm = TRUE)){
-    #     if(is.null(n) || is.na(n)){
-    #         stop("`n` cannot be NULL or NA for objects of takRwide")
-    #     }
-    #     for(a in which(indx)){
-    #         def[[a]][["n"]] <- n
-    #     }
-    # }
     return(def)
 }
 

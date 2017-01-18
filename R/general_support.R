@@ -3,38 +3,6 @@ cm2in <- function(x){
     return(cm)
 }
 
-# rep_quiet: Quietly return NULL if x is NULL (while retaining other messages from rep)
-rep_quiet <- function(x, ...){
-    if(is.null(x)){
-        return(NULL)
-    } else {
-        rep(x, ...)
-    }
-}
-
-is.wholenumber <- function(x, tol = .Machine$double.eps^0.5){
-    if(!is.numeric(x)){
-        return(FALSE)
-    } else {
-        indx <- abs(x - round(x)) < tol
-        return(indx)
-    }
-}
-
-# # expand_args: Build an argument list using recycling rules
-# expand_args <- function(...){
-#     dots <- list(...)
-#     max_length <- max(sapply(dots, length))
-#     lapply(dots, rep_quiet, length.out = max_length)
-# }
-
-compare <- function(v){
-    first <- v[1]
-    rest <- as.list(v[-1])
-    res <- sapply(rest, FUN=function(z){ identical(z, first) })
-    return(all(res))
-}
-
 make_key <- function(string, subs = "takR"){
     key <- as.character(string)
     key <- stringr::str_trim(key)
@@ -73,38 +41,6 @@ rnt <- function(min = 0, max = 30, by = 1, nrow = 10, ncol = 10,
     return(samples)
 }
 
-sum_on_col <- function(x){
-    # Sum columns with matching names
-    # This works equally well if x is a list becuase melt operates by melting the components of a list...
-    x_m <- reshape2::melt(x, as.is=TRUE)
-    x_m[is.na(x_m$value)] <- 0
-    # Cast the data as an array that is row-by-col, summing accross matches....
-    x_out <- reshape2::acast(x_m, Var1~Var2, fun.aggregate=sum)
-    if(inherits(x, "takRwide")){
-        # If it came in as a takRwide, send it back as the same....
-        class(x_out) <- class(x)
-    } else {
-        # Otherwise, send back a takRwide object
-        class(x_out) <- c("takRwide", class(x_out))
-    }
-    # Map any "takR*" attributes
-    x_out <- map_attributes(x, x_out)
-    return(x_out)
-}
-
-# Add a named class to an object
-add_class <- function(x, class, prepend = TRUE){
-    if(inherits(x, class)){
-        return(x)
-    }
-    if(prepend){
-        class(x) <- c(class, class(x))
-    } else {
-        class(x) <- c(class(x), class)
-    }
-    return(x)
-}
-
 theme_takiwaR <- function(base_size=12, base_family="") {
     grey <- "#737373"
     black <- "#000000"
@@ -121,4 +57,17 @@ theme_takiwaR <- function(base_size=12, base_family="") {
             plot.background=element_blank(),
             strip.background = element_rect(fill="white", colour=NA)
         )
+}
+
+# Add a named class to an object.
+add_class <- function(x, class, prepend = TRUE){
+    if(inherits(x, class)){
+        return(x)
+    }
+    if(prepend){
+        class(x) <- c(class, class(x))
+    } else {
+        class(x) <- c(class(x), class)
+    }
+    return(x)
 }
