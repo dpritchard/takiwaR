@@ -29,6 +29,10 @@ S3method(print, takRpredicates)
 S3method(validate, takRcollection)
 S3method(validate, takRdef)
 S3method(validate, default)
+S3method(str, takRpredicate)
+S3method(str, takRpredicates)
+S3method(str, takRvalidator)
+S3method(str, takRvalidators)
 
 # Dropped (unceremoniously) from takiwaR v 1.0 "Whakaraupo"
 #export(mchi_wspp)

@@ -17,15 +17,16 @@ default_takRvalidators[["takRdef"]] <- list(
 )
 
 # takRblock - A single building block of a read definition object.
-## Must have a "text" field
-## "text" must contain a character string
-## Check all sections have str_in and str_out
-## Check that str_in and str_out are valid takiwaR structure types
-## Check for each str_in it is being stored as a valid str_out
-## Check for each str_out that it is being specified as a vaild str_in
-## Check that fill is valid for the output structure:
 default_takRvalidators[["takRblock"]] <- list(
-    # TODO
+    ## Must have a "text" field
+    make_validator(f = has_specified_named_object, what = "text")
+    ## "text" must contain a character string
+    ## Check all sections have str_in and str_out
+    ## Check that str_in and str_out are valid takiwaR structure types
+    ## Check for each str_in it is being stored as a valid str_out
+    ## Check for each str_out that it is being specified as a vaild str_in
+    ## Check that fill is valid for the output structure:
+    
 )
 
 # takRrow

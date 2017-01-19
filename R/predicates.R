@@ -56,7 +56,7 @@ has_unique_rownames <- function(x){
 }
 
 has_specified_named_object <- function(x, what){
-    if(!assertive::has_names){
+    if(!assertive::has_names(x)){
         stop("Does not have names, so cannot search them.")
     }
     out <- what %in% names(x)

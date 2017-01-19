@@ -55,7 +55,7 @@ get_valid_str_in <- function(str_out){
     return(out)
 }
 
-# Note: takRblock_by_* functions return the **content of** the defualt section blocks (i.e. it is up to the uder to name them)
+# Note: takRblock_by_* functions return the **content of** the defualt section blocks (i.e. it is up to the user to name them)
 # Validate input into takRblock_empty and takRblock_by_* family
 validate_block_input <- function(.text = NULL, .str_in = NULL, .str_out = NULL, .fill = NULL, .n = NULL){
     lens <- lengths(list(.text, .str_in, .str_out, .fill, .n))
@@ -96,6 +96,7 @@ takRblock_empty <- function(.text = NULL, .str_in = NULL, .str_out = NULL, .fill
     validate_block_input(.text = text, .str_in = str_in, .str_out = str_out, .fill = fill, .n = n)
     out <- list("text" = text, "str_in" = str_in, "str_out" = str_out, "fill" = fill, "n" = n)
     out <- add_class(out, "takRblock")
+    validators(out) <- get_default_validators(out)
     return(out)
 }
 
@@ -125,7 +126,8 @@ takRblock_by_name <- function(.name, .text = NULL, .str_in = NULL, .str_out = NU
         if(is.null(n)) stop("`n` can not be NULL for matrix input structures")
         out[["n"]] <- n
     }
-    # We should be using validate() here! But the defualt validation section is not ready yet
+    validators(out) <- get_default_validators(out)
+    # We should be using validate() here! 
     return(out)
 }
 
@@ -159,7 +161,7 @@ takRblock_by_in_str <- function(.str_in, .text = NULL, .str_out = NULL, .fill = 
     } else {
         out <- takRblock_empty(.text = text, .str_in = str_in, .str_out = str_out, .fill = fill)
     }
-    # TODO: SET VALIDATORS e.g. Enforce n for matirx objects
+    validators(out) <- get_default_validators(out)
     return(out)
 }
 
@@ -193,7 +195,8 @@ takRblock_by_out_str <- function(.str_out, .text = NULL, .str_in = NULL, .fill =
     } else {
         out <- takRblock_empty(.text = text, .str_in = str_in, .str_out = str_out, .fill = fill)
     }
-    # TODO: SET VALIDATORS e.g. Enforce n matrix objects
+    
+    validators(out) <- get_default_validators(out)
     return(out)
 }
 
@@ -235,6 +238,9 @@ new_read_definition <- function(sec_names = NULL, n = NULL){
                       "Manual intervention will be required")
         warning(msg, call. = FALSE)
     }
+    
+    # Add default validators
+    validators(def) <- get_default_validators(def)
     return(def)
 }
 

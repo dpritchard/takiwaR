@@ -15,7 +15,7 @@
 ## A validator is an overloaded predicate function that produces a single predicate.
 
 # Exported functions
-make_validator <- function(f, ..., what = c("all", "any"),
+make_validator <- function(f, ..., any_or_all = c("all", "any"),
                            context = NULL, description = NULL, treat_na_as = FALSE){
     if(!inherits(f, what = "function")){
         stop("`f` is not a function")
@@ -43,13 +43,10 @@ make_validator <- function(f, ..., what = c("all", "any"),
         out <- list("res" = res, "err" = err, "wrn" = wrn, "msg" = msg)
         return(out)
     }
-    what <- match.arg(what)
-    what_func <- match.fun(what)
+    any_or_all <- match.arg(any_or_all)
+    any_or_all_f <- match.fun(any_or_all)
     # TODO: Make use of "description"
-    # out <- list("v" = func, "what" = what, "what_func" = what_func, 
-    #             "expect" = expect,"context" = context, "description" = description,
-    #             "treat_na_as" = treat_na_as)
-    out <- list("v" = func, "what" = what, "what_func" = what_func, 
+    out <- list("v" = func, "any_or_all" = any_or_all, "any_or_all_f" = any_or_all_f, 
                 "context" = context, "description" = description,
                 "treat_na_as" = treat_na_as)
     out <- add_class(out, "takRvalidator")
@@ -137,7 +134,7 @@ run_validator <- function(x, validator){
     
     # Apply ALL or ANY (if needed)
     if(length(res) > 1){
-        res <- validator$what_func(res)
+        res <- validator$any_or_all_f(res)
     }
     
     # # If the result is not indeterminate (i.e. logical(0)), then check it meets expectations

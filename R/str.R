@@ -9,7 +9,6 @@ str.takRblock <- function(object, ...){
     cat(sprintf(" \"%s\"\n", object$text))
 }
 
-
 str.takRpredicates <- function(object, ...){
     cat(sprintf("List of %s predicates\n", 
                 length(object)))
