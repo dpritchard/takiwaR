@@ -46,7 +46,7 @@ is_default_str_out <- function(x){
 }
 # Get valid output structure(s), based on the input structure type
 get_valid_str_out <- function(str_in){
-    out <- takiwaR:::out_strs[[str_in]][["str_out"]]
+    out <- takiwaR:::in_strs[[str_in]][["str_out"]]
     return(out)
 }
 # Get valid input structure(s), based on the output structure type
@@ -73,7 +73,7 @@ validate_block_input <- function(.text = NULL, .str_in = NULL, .str_out = NULL, 
                       "Options are: ", paste(names(takiwaR:::in_strs), collapse = ", "))
         stop(msg)
     }
-    if(!is.null(.str_out) && !is_default_str_in(.str_out)){
+    if(!is.null(.str_out) && !is_default_str_out(.str_out)){
         msg <- paste0("`", .str_out, "` is not a valid output structure\n",
                       "Options are: ", paste(names(takiwaR:::out_strs), collapse = ", "))
         stop(msg)

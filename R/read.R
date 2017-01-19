@@ -152,14 +152,15 @@ new_takRempty <- function(){
 munge_raw_matrix <- function(x, smeta){
     # A fucntion to reduce duplication for matrix munging.
     # Takes a raw object (x) in the "wide" direction and returns a clean matrix.
+    # Coerce to a character matrix 
+    x <- as.matrix(x)
     
     col_nmes <- x[1, ] # Grab the header row...
     row_nmes <- x[, 1] # Grab the first col
-    x <- x[-1, -1] # Drop the first row and col.
+    x <- x[-1, -1, drop=FALSE] # Drop the first row and col.
     col_nmes <- col_nmes[-1] # The first item is a section name
     row_nmes <- row_nmes[-1] # As above
-    # Coerce to a character matrix 
-    x <- as.matrix(x)
+    
     
     # Next check there is at least enough rows to proceed
     if(nrow(x) < smeta$n){
@@ -204,25 +205,29 @@ munge_raw_matrix <- function(x, smeta){
 }
 
 munge_raw_df <- function(x, smeta){
-    col_nmes <- x[1, ] # Grab the header row...
-    row_nmes <- x[, 1] # Grab the first col
-    x <- x[-1, -1] # Drop the first row and col.
+    x <- as.matrix(x)
+    col_nmes <- as.character(x[1, ]) # Grab the header row...
+    row_nmes <- as.character(x[, 1]) # Grab the first col
+    x <- x[-1, -1, drop=FALSE] # Drop the first row and col.
     col_nmes <- col_nmes[-1] # The first item is a section name
     row_nmes <- row_nmes[-1] # As above
-    x <- as.matrix(x)
     
-    # Drop entirely empty rows
-    drop_indx <- apply(x, 1, all_is_na) # Get columns that have nothing
+    # Drop columns without names 
+    drop_indx <- is.na(col_nmes)
     x <- x[, !drop_indx, drop=FALSE] # Drop empty columns
     col_nmes <- col_nmes[!drop_indx] # Update the col_nmes info
     
-    # Drop entirely empty columns 
-    drop_indx <- apply(x, 2, all_is_na) # Get columns that have nothing
-    x <- x[, !drop_indx, drop=FALSE] # Drop empty columns
-    col_nmes <- col_nmes[!drop_indx] # Update the col_nmes info
+    # If there are no columns at this point, we can just return NA
+    if(is_zero(ncol(x))) return(new_takRempty())
+    
+    # Drop rows
+    drop_indx <- apply(x, 1, all_is_na) # Get rows that have nothing
+    drop_indx <- drop_indx & is.na(row_nmes)
+    x <- x[!drop_indx, , drop=FALSE] # Drop empty rows with no names
+    row_nmes <- row_nmes[!drop_indx] # Update the row_nmes info
     
     # If there are no rows at this point, we can just return NA
-    if(is_zero(ncol(x))) return(new_takRempty())
+    if(is_zero(nrow(x))) return(new_takRempty())
     
     # Replace NA's with the fill variable
     if(!is.null(smeta$fill)){
