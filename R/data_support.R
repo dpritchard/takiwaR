@@ -42,6 +42,10 @@ print.takRempty <- function(x, ...){
 }
 
 print.takRmeta <- function(x, ...){
+    NextMethod("print", na.print = "NA", ...)
+}
+
+print.takRrow <- function(x, ...){
     keys <- names(x)
     pad_len <- max(stringr::str_length(keys))+3
     for(key in keys){
@@ -51,7 +55,7 @@ print.takRmeta <- function(x, ...){
 }
 
 print.takRperc <- function(x, ...){
-    NextMethod("print", na.print = "NA", ...)
+    
 }
 
 print.takRcount <- function(x, ...){
@@ -66,20 +70,68 @@ print.takRwide <- function(x, ...){
     print.table(x, ...)
 }
 
+
+print.takRpredicate <- function(x, ..., context_length = NULL, pad = 4){
+    # context_length is the width of the string length of the context.
+    # It might be supplied, if there are potentially multiple contexts
+    # In which case it will be the maximum length of any context...
+    # Otherwise, we calculate it here.  
+    if(is.null(context_length)){
+        context_length <- stringr::str_length(x[["context"]])
+    }
+    result <- logi_to_predicate(x[["logi"]])
+    
+    # The first line is made up of [context+padding][pad]["result"][": "][result]
+    # We need to calculate the length of the [context+padding][pad]["result"] part
+    # pad is the amount of padding between the context and the label of the first object.
+    part1 <- paste0(stringr::str_pad(x[["context"]], context_length+pad, side = "right"), "result")
+    part1_len <- stringr::str_length(part1)
+    
+    cat(part1, ": ", result, "\n", sep="")
+    
+    # TODO: Treat myself to nice "getting and setting functions" for errors, warnings and messages (objects of takRpredicate, generally)
+    lab <- ifelse(length(x[["err"]]) > 1, "errors", "error")
+    print_ewm(x[["err"]], label = lab, pad = part1_len)
+    
+    lab <- ifelse(length(x[["wrn"]]) > 1, "warnings", "warning")
+    print_ewm(x[["wrn"]], label = lab, pad = part1_len)
+    
+    lab <- ifelse(length(x[["msg"]]) > 1, "messages", "message")
+    print_ewm(x[["msg"]], label = lab, pad = part1_len)
+    
+}
+
+print.takRpredicates <- function(x, ..., only_fails = TRUE, header = NULL){
+    if(only_fails){
+        indx <- unlist(lapply(x, "[[", "logi"))
+        x <- x[!indx]
+    }
+    if(length(x)){
+        if(!is.null(header)){
+            cat(header, "\n")
+        }
+        contexts <- unlist(lapply(x, "[[", "context"))
+        max_context_len <- max(stringr::str_length(contexts))
+        for(a in seq_along(x)){
+            print(x[[a]], context_length = max_context_len)
+        }
+    }
+}
+
 # takRlong
 # Long generates a long-form dataframe, columns: Quadrat, Variable, Value
 takRlong <- function(x, ...) UseMethod("takRlong")
 
 takRlong.takRperc <- function(x, ...){
     out <- reshape2::melt(x, as.is = T)
-    names(out) <- c("takR_quad", "takR_var", "takR_val")
+    names(out) <- c("row_name", "col_name", "val")
     out <- map_attributes(x, out)
     return(out)
 }
 
 takRlong.takRcount <- function(x, ...){
     out <- reshape2::melt(x, as.is = T)
-    names(out) <- c("takR_quad", "takR_var", "takR_val")
+    names(out) <- c("row_name", "col_name", "val")
     out <- map_attributes(x, out)
     return(out)
 }
@@ -87,7 +139,7 @@ takRlong.takRcount <- function(x, ...){
 takRlong.takRsf <- function(x, ...){
     out <- reshape2::melt(x, na.rm = TRUE, as.is = T)
     out <- out[,-2]
-    names(out) <- c("takR_quad", "takR_val")
+    names(out) <- c("row_name", "val")
     out <- map_attributes(x, out)
     return(out)
 }
