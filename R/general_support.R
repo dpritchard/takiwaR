@@ -71,3 +71,19 @@ add_class <- function(x, class, prepend = TRUE){
     }
     return(x)
 }
+
+sample_grid <- function(n, l = 10, w = 5, ql = 0.5, qw = ql, zero_is = c("down", "up")){
+    len_seq <- seq(from = ql/2, to = l-ql/2, by = ql)
+    wid_seq <- seq(from = qw/2, to = w-qw/2, by = qw)
+    grid <- expand.grid(l = len_seq, w = wid_seq)
+    opts <- sample(x = 1:nrow(grid), size = n, replace = FALSE)
+    out <- grid[opts, ]
+    zero_is <- match.arg(zero_is, c("down", "up"))
+    if(zero_is == "down"){
+        out <- out[order(out$l),]
+    } else {
+        out <- out[order(-out$l),]
+    }
+    row.names(out) <- NULL
+    return(out)
+}
