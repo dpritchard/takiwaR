@@ -41,9 +41,19 @@
                 <input id="N" type="number" min="0" max="30" required value="10">
             </div>
             <div class="pure-control-group">
-                <label for="N">River Width</label>
-                <input id="N" type="text" min="0" max="100" required value="10">
+                <label for="W">River Width</label>
+                <input id="W" type="text" min="0" max="100" required value="10">
             </div>
+            
+            <div class="pure-control-group">
+            <label for="zero_is">Zero is ... ?</label>
+            <select id="zero_is">
+            	<option value="down">Downstream</option>
+  				<option value="up">Upstream</option>
+			</select>
+            </div>
+            
+            
         </fieldset>
 </div>
 
@@ -80,7 +90,7 @@ $(document).ready(function(){
     console.log(w)
        
     //perform the request
-    var req = ocpu.call("sample_grid", {n:n, w:w}, function(session){
+    var req = ocpu.call("sample_grid", {n:n, w:w, zero_is:zero_is}, function(session){
         session.getConsole(function(outtxt){
             //alert(outtxt);
             $("#calc-result").html("<p class='TAKui-success'>Success!</p><pre>" + outtxt + "</pre>");
