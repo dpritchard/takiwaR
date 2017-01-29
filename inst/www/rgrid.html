@@ -80,7 +80,7 @@ $(document).ready(function(){
     console.log(w)
        
     //perform the request
-    var req = ocpu.call("sample_grid", {n:n, l:l, w:w, ql:ql}, function(session){
+    var req = ocpu.call("sample_grid", {n:n, w:w}, function(session){
         session.getConsole(function(outtxt){
             //alert(outtxt);
             $("#calc-result").html("<p class='TAKui-success'>Success!</p><pre>" + outtxt + "</pre>");
