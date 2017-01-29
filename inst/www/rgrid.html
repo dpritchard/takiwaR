@@ -89,6 +89,7 @@ $(document).ready(function(){
     var zero_is = $("#zero_is").val();
     console.log(n)
     console.log(w)
+    console.log(zero_is)
        
     //perform the request
     var req = ocpu.call("sample_grid", {n:n, w:w, zero_is:zero_is}, function(session){
