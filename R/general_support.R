@@ -72,7 +72,8 @@ add_class <- function(x, class, prepend = TRUE){
     return(x)
 }
 
-sample_grid <- function(n, l = 10, w = 5, ql = 0.5, qw = ql, zero_is = c("down", "up")){
+sample_grid <- function(n, l = 10, w = 5, ql = 0.5, qw = ql, zero_is = c("down", "up"), seed=NULL){
+    # Seed is not used here, but it is used to circumvent OpenCPUs caching
     len_seq <- seq(from = ql/2, to = l-ql/2, by = ql)
     wid_seq <- seq(from = qw/2, to = w-qw/2, by = qw)
     grid <- expand.grid(l = len_seq, w = wid_seq)

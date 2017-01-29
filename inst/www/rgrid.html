@@ -81,12 +81,13 @@ $(document).ready(function(){
     var n = parseInt($("#N").val());
     var w = parseFloat($("#W").val());
     var zero_is = $("#zero_is").val();
+    var seed = Math.random();
     console.log(n)
     console.log(w)
     console.log(zero_is)
        
     //perform the request
-    var req = ocpu.call("sample_grid", {n:n, w:w, zero_is:zero_is}, function(session){
+    var req = ocpu.call("sample_grid", {n:n, w:w, zero_is:zero_is, seed:seed}, function(session){
         session.getConsole(function(outtxt){
             //alert(outtxt);
             $("#calc-result").html("<p class='TAKui-success'>Success!</p><pre>" + outtxt + "</pre>");
