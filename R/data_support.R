@@ -142,9 +142,8 @@ takRlong.takRsf <- function(x, ...){
 }
 
 takRlong.takRwide <- function(x, ...){
-    out <- reshape2::melt(x, na.rm = TRUE, as.is = T)
-    out <- out[,-2]
-    names(out) <- c("row_name", "value")
+    out <- reshape2::melt(x, as.is = T)
+    names(out) <- c("row_name", "col_name", "value")
     return(out)
 }
 
