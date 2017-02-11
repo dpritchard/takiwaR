@@ -141,6 +141,13 @@ takRlong.takRsf <- function(x, ...){
     return(out)
 }
 
+takRlong.takRwide <- function(x, ...){
+    out <- reshape2::melt(x, na.rm = TRUE, as.is = T)
+    out <- out[,-2]
+    names(out) <- c("row_name", "value")
+    return(out)
+}
+
 extract_long <- function(x, what, what_meta=NULL){
     # Extract a named item as a long-form data frame.
     # Optionally include meta data in columns.

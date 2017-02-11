@@ -9,6 +9,7 @@ exportPattern("^has_*", "^is_*", "^all_*")
 export(read_takRexcel)
 export(new_read_definition)
 export(takRblock)
+export(extract_long)
 
 # print methods for core types
 S3method(print, takRcollection)
