@@ -124,22 +124,57 @@ takRlong <- function(x, ...) UseMethod("takRlong")
 
 takRlong.takRperc <- function(x, ...){
     out <- reshape2::melt(x, as.is = T)
-    names(out) <- c("row_name", "col_name", "val")
-    out <- map_attributes(x, out)
+    names(out) <- c("row_name", "col_name", "value")
     return(out)
 }
 
 takRlong.takRcount <- function(x, ...){
     out <- reshape2::melt(x, as.is = T)
-    names(out) <- c("row_name", "col_name", "val")
-    out <- map_attributes(x, out)
+    names(out) <- c("row_name", "col_name", "value")
     return(out)
 }
 
 takRlong.takRsf <- function(x, ...){
     out <- reshape2::melt(x, na.rm = TRUE, as.is = T)
     out <- out[,-2]
-    names(out) <- c("row_name", "val")
-    out <- map_attributes(x, out)
+    names(out) <- c("row_name", "value")
     return(out)
+}
+
+extract_long <- function(x, what, what_meta=NULL){
+    # Extract a named item as a long-form data frame.
+    # Optionally include meta data in columns.
+    if(!is.character(what)){
+        stop("`what` must be a string")
+    }
+    if(is.null(x[[what]])){
+        msg <- sprintf("'%s' does not exist, returning NULL", what)
+        warning(msg)
+        return(NULL)
+    }
+    if(all(is.na(x[[what]]))){
+        msg <- sprintf("'%s' contains only NAs, returning NULL", what)
+        warning(msg)
+        return(NULL)
+    }
+    tmp <- takRlong(x[[what]])
+    if(!is.null(what_meta)){
+        indx <- stringr::str_detect(lapply(x, class), "takRmeta")
+        if(!any(indx)){
+            stop("Metadata requested, but `x` does not have an object of class 'takRmeta'")
+        }
+        meta <- x[[which(indx)[1]]]
+        for(a in 1:length(what_meta)){
+            metadat <- meta[[what_meta[a]]]
+            if(length(metadat) > 1){
+                metanames <- c(paste0(what_meta[a], "_", 1:length(metadat)))
+            } else {
+                metanames <- what_meta[a]
+            }
+            for(b in 1:length(metanames)){
+                tmp[metanames[b]] <- metadat[b]
+            }
+        }
+    }
+    return(tmp)
 }
