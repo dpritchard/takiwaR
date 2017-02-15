@@ -147,6 +147,14 @@ takRlong.takRwide <- function(x, ...){
     return(out)
 }
 
+takRlong.takRcol <- function(x, ...){
+    return(x)
+}
+
+takRlong.takRrow <- function(x, ...){
+    stop("The 'takRlong' method is not supported for objects of class 'takRrow'")
+}
+
 extract_long <- function(x, what, what_meta=NULL){
     # Extract a named item as a long-form data frame.
     # Optionally include meta data in columns.
