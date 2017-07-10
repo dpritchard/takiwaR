@@ -1,4 +1,4 @@
-# takiwaR 0.0.2.9000 (Development)
+# takiwaR 1.0.0.0 (Release)
 
 - is.zero renamed to is_zero. No aliasing is provided.
 - length2 removed. Use `length(na.omit(x))` if this is what you mean.
