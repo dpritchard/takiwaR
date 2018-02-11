@@ -1,7 +1,7 @@
 Package: takiwaR
 Title: Methods for "State of the Takiwa" Monitoring
-Version: 1.0.0.0
-Date: 2017-07-10
+Version: 1.1.0.0
+Date: 2018-02-12
 Authors@R: person("Daniel", "Pritchard", email= "daniel@pritchard.co", role = c("aut", "cre"))
 URL: http://takiwa.org.nz
 BugReports: https://github.com/dpritchard/takiwaR/issues

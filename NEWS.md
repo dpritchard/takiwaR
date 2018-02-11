@@ -1,3 +1,7 @@
+# takiwaR 1.1.0.0 (Release)
+
+- Fix readxl error
+
 # takiwaR 1.0.0.0 (Release)
 
 - is.zero renamed to is_zero. No aliasing is provided.
