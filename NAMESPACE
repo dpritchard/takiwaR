@@ -1,12 +1,9 @@
-export(mchi, mchi_wspp)
 export(cm2in, compare, make_key, se, rnt, is_zero, all_is_na, map_attributes, sum_on_col)
 export(error_bar, set_par, mtexti, setup_plot, theme_takiwaR)
 export(read_takRbt, default_takRsec, vals_takRsec)
 export(add_takRmeta, set_takRmeta, extract_long, extract_takRmeta, toattr_takRmeta)
 export(takRcombine, takRlong, takRvalidate)
 #export(read_takRdat)
-
-S3method(print, mchi)
 
 S3method(takRcombine, takRbt)
 S3method(takRcombine, takRmeta)

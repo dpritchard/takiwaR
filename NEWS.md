@@ -1,3 +1,7 @@
+# takiwaR 1.1.09.0 (Dev)
+
+- Strip out MCHI methods (moved to NTSTAT)
+
 # takiwaR 1.1.0.0 (Release)
 
 - Fix readxl error
